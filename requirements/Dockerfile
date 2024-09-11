@@ -5,9 +5,49 @@ ARG FROM_IMAGE=nvcr.io/nvidia/pytorch
 # Import RAPIDS container as the BASE Image (cuda base image)
 FROM ${FROM_IMAGE}:${VERSION_DATE}-py3
 
+RUN  apt-get -y install gdal-bin libgdal-dev && \
+    apt-get -y autoremove && \
+    rm -rf /var/cache/apt /var/lib/apt/lists/*
+
 # Pip
 RUN pip --no-cache-dir install omegaconf \
-    terratorch
+    pytorch-lightning \
+    Lightning \
+    transformers \
+    datasets \
+    webdataset \
+    deepspeed \
+    'huggingface_hub[cli,torch]' \
+    torchgeo \
+    rasterio \
+    rioxarray \
+    xarray \
+    xarray-spatial \
+    geopandas \
+    opencv-python \
+    opencv-python-headless \
+    opencv-contrib-python \
+    opencv-contrib-python-headless \
+    tifffile \
+    webcolors \
+    Pillow \
+    seaborn \
+    xgboost \
+    tiler \
+    segmentation-models \
+    timm \
+    supervision \
+    pytest \
+    coveralls \
+    rtree \
+    sphinx \
+    sphinx_rtd_theme \
+    yacs \
+    termcolor \
+    segmentation-models-pytorch \
+    pytorch-caney \
+    GDAL==`ogrinfo --version | grep -Eo '[0-9]\.[0-9]\.[0-9]+'`
+
 
 HEALTHCHECK NONE
 ENTRYPOINT []
