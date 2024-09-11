@@ -5,7 +5,12 @@ ARG FROM_IMAGE=nvcr.io/nvidia/pytorch
 # Import RAPIDS container as the BASE Image (cuda base image)
 FROM ${FROM_IMAGE}:${VERSION_DATE}-py3
 
-RUN  apt-get -y install gdal-bin libgdal-dev && \
+RUN apt-get update && \
+    apt-get -y install software-properties-common && \
+    add-apt-repository ppa:ubuntugis/ubuntugis-unstable && \
+    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
+    apt-get update && apt-get -y dist-upgrade && \
+    apt-get -y install gdal-bin libgdal-dev && \
     apt-get -y autoremove && \
     rm -rf /var/cache/apt /var/lib/apt/lists/*
 
