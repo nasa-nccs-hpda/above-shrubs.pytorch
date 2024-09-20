@@ -33,6 +33,12 @@ class Config:
     # do we need to z-score tiles
     standardization: Optional[bool] = False
 
+    # tile size
+    tile_size: int = 256
+
+    # batch size
+    batch_size: int = 64
+
 
 @dataclass
 class CHMConfig(Config):

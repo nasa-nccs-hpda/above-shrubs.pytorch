@@ -1,8 +1,10 @@
 import os
 import sys
+import torch
 import logging
 import omegaconf
 import numpy as np
+import pandas as pd
 import rioxarray as rxr
 
 from glob import glob
@@ -241,3 +243,23 @@ class BasePipeline(object):
         self.logger.info(f'Test images dir: {self.test_images_dir}')
 
         return
+
+    # -------------------------------------------------------------------------
+    # get_mean_std_dataset
+    # -------------------------------------------------------------------------
+    def get_mean_std_dataset(self, dataloader, output_filename: str):
+
+        for index, (data, _) in enumerate(dataloader):
+            channels_sum, channels_squared_sum, num_batches = 0, 0, 0
+            channels_sum += torch.mean(data, dim=(1, 2, 3))
+            channels_squared_sum += torch.mean(data**2, dim=(1, 2, 3))
+            num_batches += 1
+
+        mean = channels_sum / num_batches
+        std = (channels_squared_sum / num_batches - mean ** 2) ** 0.5
+
+        if output_filename is not None:
+            mean_std = np.stack([mean.numpy(), std.numpy()], axis=0)
+            pd.DataFrame(mean_std).to_csv(
+                output_filename, header=None, index=None)
+        return mean, std

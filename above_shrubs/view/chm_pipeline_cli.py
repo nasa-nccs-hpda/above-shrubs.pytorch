@@ -89,8 +89,8 @@ def main():
         pipeline.setup()
     if "preprocess" in args.pipeline_step or "all" in args.pipeline_step:
         pipeline.preprocess()
-    #if "train" in args.pipeline_step or "all" in args.pipeline_step:
-    #    pipeline.train()
+    if "train" in args.pipeline_step or "all" in args.pipeline_step:
+        pipeline.train()
     #if "predict" in args.pipeline_step or "all" in args.pipeline_step:
     #    pipeline.predict(args.force_cleanup)
     #if "validate" in args.pipeline_step or "all" in args.pipeline_step:
