@@ -15,44 +15,43 @@ RUN apt-get update && \
     rm -rf /var/cache/apt /var/lib/apt/lists/*
 
 # Pip
-RUN pip --no-cache-dir install omegaconf \
-    terratorch \
-    pytorch-lightning \
-    Lightning \
-    transformers \
-    datasets \
-    webdataset \
-    deepspeed \
-    'huggingface_hub[cli,torch]' \
-    torchgeo \
-    rasterio \
-    rioxarray \
-    xarray \
-    xarray-spatial \
-    geopandas \
-    opencv-python \
-    opencv-python-headless \
-    opencv-contrib-python \
-    opencv-contrib-python-headless \
-    tifffile \
-    webcolors \
-    Pillow \
-    seaborn \
-    xgboost \
-    tiler \
-    segmentation-models \
-    timm \
-    supervision \
-    pytest \
-    coveralls \
-    rtree \
-    sphinx \
-    sphinx_rtd_theme \
-    yacs \
-    termcolor \
-    segmentation-models-pytorch \
-    pytorch-caney \
-    GDAL==`ogrinfo --version | grep -Eo '[0-9]\.[0-9]\.[0-9]+'`
+RUN pip --no-cache-dir install omegaconf terratorch
+    #pytorch-lightning \
+    #Lightning \
+    #transformers \
+    #datasets \
+    #webdataset \
+    #deepspeed \
+    #'huggingface_hub[cli,torch]' \
+    #torchgeo \
+    #rasterio \
+    #rioxarray \
+    #xarray \
+    #xarray-spatial \
+    #geopandas \
+    #opencv-python \
+    #opencv-python-headless \
+    #opencv-contrib-python \
+    #opencv-contrib-python-headless \
+    #tifffile \
+    #webcolors \
+    #Pillow \
+    #seaborn \
+    #xgboost \
+    #tiler \
+    #segmentation-models \
+    #timm \
+    #supervision \
+    #pytest \
+    #coveralls \
+    #rtree \
+    #sphinx \
+    #sphinx_rtd_theme \
+    #yacs \
+    #termcolor \
+    #segmentation-models-pytorch \
+    #pytorch-caney \
+    #GDAL==`ogrinfo --version | grep -Eo '[0-9]\.[0-9]\.[0-9]+'`
 
 
 HEALTHCHECK NONE
