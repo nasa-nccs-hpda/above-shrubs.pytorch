@@ -15,7 +15,7 @@ RUN apt-get update && \
     rm -rf /var/cache/apt /var/lib/apt/lists/*
 
 # Pip
-RUN pip --no-cache-dir --ignore-installed install omegaconf terratorch
+RUN pip --no-cache-dir install --ignore-installed omegaconf terratorch
     #pytorch-lightning \
     #Lightning \
     #transformers \
