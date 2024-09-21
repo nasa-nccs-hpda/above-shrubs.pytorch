@@ -1,6 +1,11 @@
 import os
 import logging
+
+import timm
+import torch
+import terratorch 
 import numpy as np
+
 from itertools import repeat
 from torch.utils.data import DataLoader
 from multiprocessing import Pool, cpu_count
@@ -138,6 +143,7 @@ class CHMPipeline(BasePipeline):
             batch_size=self.conf.batch_size, shuffle=False
         )
 
+        print(timm.list_models("prithvi*"))
         # Build model
         #     model = build_finetune_model(config, logger)
 

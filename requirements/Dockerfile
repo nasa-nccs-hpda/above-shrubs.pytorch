@@ -16,6 +16,7 @@ RUN apt-get update && \
 
 # Pip
 RUN pip --no-cache-dir install omegaconf \
+    terratorch \
     pytorch-lightning \
     Lightning \
     transformers \
