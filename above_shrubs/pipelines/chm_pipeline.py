@@ -3,7 +3,7 @@ import logging
 
 import timm
 import torch
-import terratorch 
+import terratorch
 import numpy as np
 
 from itertools import repeat

@@ -1,11 +1,15 @@
 import os
+import sys
 import numpy as np
-from torch.utils.data import Dataset
+import rioxarray as rxr
+from typing import Any
+from pathlib import Path
+from torchgeo.datasets import NonGeoDataset
 
 
-class CHMDataset(Dataset):
+class CHMDataset(NonGeoDataset):
     """
-    CHM Regression dataset.
+    CHM Regression dataset from NonGeoDataset.
     """
 
     def __init__(
@@ -14,7 +18,8 @@ class CHMDataset(Dataset):
         mask_paths: list,
         img_size: tuple = (256, 256),
         transform=None,
-    ):
+    ) -> None:
+        super().__init__()
 
         # image size
         self.image_size = img_size
@@ -42,22 +47,42 @@ class CHMDataset(Dataset):
             self.image_list.extend(self.get_filenames(image_path))
             self.mask_list.extend(self.get_filenames(mask_path))
 
-    def __len__(self):
+        # rgb indices for some plots
+        self.rgb_indices = [0, 1, 2]
+
+    def __len__(self) -> int:
         return len(self.image_list)
 
-    def __getitem__(self, idx, transpose=True):
+    # def __getitem__(self, idx, transpose=True):
+    #
+    #    # load image
+    #    img = np.load(self.image_list[idx])
+    #
+    #    # load mask
+    #    mask = np.load(self.mask_list[idx])
+    #    # perform transformations
+    #    if self.transform is not None:
+    #        img = self.transform(img)
+    #
+    #    return img, mask
 
-        # load image
-        img = np.load(self.image_list[idx])
+    def __getitem__(self, index: int) -> dict[str, Any]:
+        output = {
+            "image": self._load_file(
+                self.image_list[index]).astype(np.float32),
+            "mask": self._load_file(
+                self.mask_list[index]).astype(np.int64),
+        }
+        return output
 
-        # load mask
-        mask = np.load(self.mask_list[idx])
-
-        # perform transformations
-        if self.transform is not None:
-            img = self.transform(img)
-
-        return img, mask
+    def _load_file(self, path: Path):
+        if Path(path).suffix == '.npy':
+            data = np.load(path)
+        elif Path(path).suffix == '.tif':
+            data = rxr.open_rasterio(path)
+        else:
+            sys.exit('Non-recognized dataset format. Expects npy or tif.')
+        return data.to_numpy()
 
     def get_filenames(self, path):
         """
