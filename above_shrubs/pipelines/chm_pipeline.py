@@ -78,33 +78,34 @@ class CHMPipeline(BasePipeline):
         self._set_train_test_dirs()
 
         # Calculate mean and std values for training
-        data_filenames = self.get_dataset_filenames(self.train_images_dir)
+        data_filenames = self.get_dataset_filenames(
+            self.train_data_dir, , ext='*.tif')
         logging.info(f'Mean and std values from {len(data_filenames)} files.')
 
         # Temporarily disable standardization and augmentation
-        current_standardization = self.conf.standardization
-        self.conf.standardization = None
-        metadata_output_filename = os.path.join(
-            self.metadata_dir, 'mean-std-values.csv')
+        #current_standardization = self.conf.standardization
+        #self.conf.standardization = None
+        #metadata_output_filename = os.path.join(
+        #    self.metadata_dir, 'mean-std-values.csv')
 
         # Set main data loader
-        chm_train_dataset = CHMDataset(
-            os.path.join(self.conf.train_tiles_dir, 'images'),
-            os.path.join(self.conf.train_tiles_dir, 'labels'),
-            img_size=(self.conf.tile_size, self.conf.tile_size),
-        )
-        train_dataloader = DataLoader(
-            chm_train_dataset,
-            batch_size=self.conf.batch_size, shuffle=False
-        )
+        #chm_train_dataset = CHMDataset(
+        #    os.path.join(self.conf.train_tiles_dir, 'images'),
+        #    os.path.join(self.conf.train_tiles_dir, 'labels'),
+        #    img_size=(self.conf.tile_size, self.conf.tile_size),
+        #)
+        #train_dataloader = DataLoader(
+        #    chm_train_dataset,
+        #    batch_size=self.conf.batch_size, shuffle=False
+        #)
 
         # Get mean and std array
-        mean, std = self.get_mean_std_dataset(
-            train_dataloader, metadata_output_filename)
-        logging.info(f'Mean: {mean.numpy()}, Std: {std.numpy()}')
+        #mean, std = self.get_mean_std_dataset(
+        #    train_dataloader, metadata_output_filename)
+        #logging.info(f'Mean: {mean.numpy()}, Std: {std.numpy()}')
 
         # Re-enable standardization for next pipeline step
-        self.conf.standardization = current_standardization
+        #self.conf.standardization = current_standardization
 
         logging.info('Done with preprocessing stage')
 
