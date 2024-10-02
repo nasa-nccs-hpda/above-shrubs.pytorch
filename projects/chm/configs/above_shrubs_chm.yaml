@@ -21,6 +21,8 @@ test_tiles_dir: '${work_dir}/test_data'
 #dtm_path: /explore/nobackup/projects/dem/AK_IFSAR/alaska_ifsar_dtm_20221222.tif
 #dsm_path: /explore/nobackup/projects/dem/AK_IFSAR/alaska_ifsar_dsm_20221222.tif
 
+batch_size: 512
+
 #------------------------------------- General -------------------------------------#
 
 #model_dir: '/explore/nobackup/people/${oc.env:USER}/projects/SRLite/regression-models'

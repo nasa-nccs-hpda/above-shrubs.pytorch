@@ -1,5 +1,5 @@
 # Arguments to pass to the image
-ARG VERSION_DATE=24.08
+ARG VERSION_DATE=24.09
 ARG FROM_IMAGE=nvcr.io/nvidia/pytorch
 
 # Import RAPIDS container as the BASE Image (cuda base image)
@@ -18,7 +18,7 @@ RUN apt-get update && \
 RUN pip --no-cache-dir install --ignore-installed omegaconf \
     #terratorch \
     pytorch-lightning \
-    Lightning \
+    #Lightning \
     transformers \
     datasets \
     webdataset \

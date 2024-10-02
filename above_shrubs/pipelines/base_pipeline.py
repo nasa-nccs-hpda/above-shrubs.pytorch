@@ -168,11 +168,12 @@ class BasePipeline(object):
         Returns:
             None.
         """
-        np.random.seed(seed)
+        np.random.seed(int(seed))
         if HAS_GPU:
             try:
-                cp.random.seed(seed)
-            except RuntimeError:
+                cp.random.seed(int(seed))
+            except (RuntimeError, TypeError):
+                logging.warning('Seed could not be fixed for cupy.')
                 return
         return
 
