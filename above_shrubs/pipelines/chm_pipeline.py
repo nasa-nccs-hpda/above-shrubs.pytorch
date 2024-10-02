@@ -144,14 +144,14 @@ class CHMPipeline(BasePipeline):
         max_epochs = 50
         fast_dev_run = False
 
-        datamodule = CHMDataModule(
-            train_data_dir=self.conf.train_data_dir,
-            train_label_dir=self.conf.train_label_dir,
-            test_data_dir=self.conf.test_data_dir,
-            test_label_dir=self.conf.test_label_dir,
-            batch_size=16,
-            num_workers=8,
-        )
+        #datamodule = CHMDataModule(
+        #    train_data_dir=self.conf.train_data_dir,
+        #    train_label_dir=self.conf.train_label_dir,
+        #    test_data_dir=self.conf.test_data_dir,
+        #    test_label_dir=self.conf.test_label_dir,
+        #    batch_size=16,
+        #    num_workers=8,
+        #)
 
         # Set main data loader
         #chm_train_dataset = CHMDataset(
