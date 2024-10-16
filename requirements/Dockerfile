@@ -5,6 +5,10 @@ ARG FROM_IMAGE=nvcr.io/nvidia/pytorch
 # Import RAPIDS container as the BASE Image (cuda base image)
 FROM ${FROM_IMAGE}:${VERSION_DATE}-py3
 
+ENV CPLUS_INCLUDE_PATH="/usr/include/gdal"
+ENV C_INCLUDE_PATH="/usr/include/gdal"
+ENV PROJ_LIB="/usr/share/proj"
+
 RUN apt-get update && \
     apt-get -y install software-properties-common && \
     add-apt-repository ppa:ubuntugis/ubuntugis-unstable && \
