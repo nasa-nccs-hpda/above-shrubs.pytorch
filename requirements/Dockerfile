@@ -20,7 +20,8 @@ RUN apt-get update && \
 
 RUN pip --no-cache-dir install --ignore-installed \
     GDAL==`ogrinfo --version | grep -Eo '[0-9]\.[0-9]\.[0-9]+'` \
-    rioxarray
+    rioxarray \
+    torchgeo
 
 # Pip
 #RUN pip --no-cache-dir install --ignore-installed omegaconf \
