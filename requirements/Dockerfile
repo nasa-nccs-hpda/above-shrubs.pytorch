@@ -21,10 +21,17 @@ ENV C_INCLUDE_PATH="/usr/include/gdal"
 RUN apt-get update && \
     apt-get install -y binutils libproj-dev gdal-bin libgdal-dev
 
-RUN pip --no-cache-dir install --ignore-installed \
+RUN pip --no-cache-dir install \
     GDAL==`ogrinfo --version | grep -Eo '[0-9]\.[0-9]\.[0-9]+'` \
     rioxarray \
-    torchgeo
+    torchgeo \
+    transformers \
+    datasets \
+    webdataset \
+    deepspeed \
+    'huggingface_hub[cli,torch]' \
+    timm \
+    geopandas
 
 # Pip
 #RUN pip --no-cache-dir install --ignore-installed omegaconf \
