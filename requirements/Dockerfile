@@ -21,57 +21,57 @@ ENV C_INCLUDE_PATH="/usr/include/gdal"
 RUN apt-get update && \
     apt-get install -y binutils libproj-dev gdal-bin libgdal-dev
 
-RUN pip --no-cache-dir install \
-    GDAL==`ogrinfo --version | grep -Eo '[0-9]\.[0-9]\.[0-9]+'` \
-    rioxarray \
-    torchgeo \
-    transformers \
-    datasets \
-    webdataset \
-    deepspeed \
-    'huggingface_hub[cli,torch]' \
-    timm \
-    geopandas
-
-# Pip
-#RUN pip --no-cache-dir install --ignore-installed omegaconf \
-#    #terratorch \
-#    #pytorch-lightning \
-#    #Lightning \
+#RUN pip --no-cache-dir install \
+#    GDAL==`ogrinfo --version | grep -Eo '[0-9]\.[0-9]\.[0-9]+'` \
+#    rioxarray \
+#    torchgeo \
 #    transformers \
 #    datasets \
 #    webdataset \
 #    deepspeed \
 #    'huggingface_hub[cli,torch]' \
-#    torchgeo \
-#    rasterio \
-#    rioxarray \
-#    xarray \
-#    xarray-spatial \
-#    geopandas \
-#    opencv-python \
-#    opencv-python-headless \
-#    opencv-contrib-python \
-#    opencv-contrib-python-headless \
-#    tifffile \
-#    webcolors \
-#    Pillow \
-#    seaborn \
-#    xgboost \
-#    tiler \
-#    segmentation-models \
 #    timm \
-#    supervision \
-#    pytest \
-#    coveralls \
-#    rtree \
-#    sphinx \
-#    sphinx_rtd_theme \
-#    yacs \
-#    termcolor \
-#    segmentation-models-pytorch \
-#    pytorch-caney \
-#    GDAL==`ogrinfo --version | grep -Eo '[0-9]\.[0-9]\.[0-9]+'`
+#    geopandas
+
+# Pip
+#--ignore-installed
+RUN pip --no-cache-dir install omegaconf \
+    #terratorch \
+    #pytorch-lightning \
+    #Lightning \
+    transformers \
+    datasets \
+    webdataset \
+    deepspeed \
+    'huggingface_hub[cli,torch]' \
+    torchgeo \
+    rasterio \
+    rioxarray \
+    xarray \
+    xarray-spatial \
+    geopandas \
+    opencv-python \
+    opencv-python-headless \
+    opencv-contrib-python \
+    opencv-contrib-python-headless \
+    tifffile \
+    webcolors \
+    Pillow \
+    seaborn \
+    xgboost \
+    tiler \
+    segmentation-models \
+    timm \
+    supervision \
+    pytest \
+    coveralls \
+    rtree \
+    sphinx \
+    sphinx_rtd_theme \
+    yacs \
+    termcolor \
+    segmentation-models-pytorch \
+    GDAL==`ogrinfo --version | grep -Eo '[0-9]\.[0-9]\.[0-9]+'`
 
 
 HEALTHCHECK NONE
