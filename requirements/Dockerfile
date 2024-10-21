@@ -7,16 +7,19 @@ FROM ${FROM_IMAGE}:${VERSION_DATE}-py3
 
 ENV CPLUS_INCLUDE_PATH="/usr/include/gdal"
 ENV C_INCLUDE_PATH="/usr/include/gdal"
-ENV PROJ_LIB="/usr/share/proj"
+# ENV PROJ_LIB="/usr/share/proj"
+
+#RUN apt-get update && \
+#    apt-get -y install software-properties-common && \
+#    add-apt-repository ppa:ubuntugis/ubuntugis-unstable && \
+#    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
+#    apt-get update && apt-get -y dist-upgrade && \
+#    apt-get -y install gdal-bin libgdal-dev && \
+#    apt-get -y autoremove && \
+#    rm -rf /var/cache/apt /var/lib/apt/lists/*
 
 RUN apt-get update && \
-    apt-get -y install software-properties-common && \
-    add-apt-repository ppa:ubuntugis/ubuntugis-unstable && \
-    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
-    apt-get update && apt-get -y dist-upgrade && \
-    apt-get -y install gdal-bin libgdal-dev && \
-    apt-get -y autoremove && \
-    rm -rf /var/cache/apt /var/lib/apt/lists/*
+    apt-get install -y binutils libproj-dev gdal-bin
 
 RUN pip --no-cache-dir install --ignore-installed \
     GDAL==`ogrinfo --version | grep -Eo '[0-9]\.[0-9]\.[0-9]+'` \
