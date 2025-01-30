@@ -71,6 +71,7 @@ RUN pip --no-cache-dir install omegaconf \
     yacs \
     termcolor \
     segmentation-models-pytorch \
+    pygeotools \
     GDAL==`ogrinfo --version | grep -Eo '[0-9]\.[0-9]\.[0-9]+'`
 
 
