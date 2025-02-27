@@ -51,13 +51,13 @@ class BasePipeline(object):
         logging.info(f'Logged configuration file: {config_filename}')
 
         # Set working directory if not available in configuration file
-        if self.conf.work_dir is None:
-            self.conf.work_dir = os.path.join(
+        if self.conf.model_dir is None:
+            self.conf.model_dir = os.path.join(
                 Path.home(), 'above-shrubs-output')
 
         # Set logger
         self.logger = logger if logger is not None else self._set_logger()
-        logging.info(f'Log output available at {self.conf.work_dir}')
+        logging.info(f'Log output available at {self.conf.model_dir}')
 
         # Seed everything for repeatability
         self.seed_everything(self.conf.seed)
@@ -111,9 +111,9 @@ class BasePipeline(object):
 
         # set filename output
         log_filename = f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}.log'
-        os.makedirs(os.path.join(self.conf.work_dir, 'logs'), exist_ok=True)
+        os.makedirs(os.path.join(self.conf.model_dir, 'logs'), exist_ok=True)
         fh = logging.FileHandler(
-            os.path.join(self.conf.work_dir, 'logs', log_filename))
+            os.path.join(self.conf.model_dir, 'logs', log_filename))
         fh.setLevel(logging.INFO)
         fh.setFormatter(formatter)
         logger.addHandler(fh)
