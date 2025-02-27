@@ -20,14 +20,25 @@ test_data_dir:  /explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/
 test_label_dir: /explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/test_merged_chm
 test_tiles_dir: '/explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/test_merged_nodtm_npy'
 
+num_train_images: 1024
+
 #------------------------------------- General -------------------------------------#
 
-batch_size: 256
-loss_func: 'mae'
-learning_rate: 0.05
-weights: 'ResNet18_Weights.SENTINEL2_ALL_MOCO'
+num_epochs: 15
+batch_size: 16
+loss_func: 'mse'
+learning_rate: 1e-4
+weights: '/explore/nobackup/projects/ilab/data/MetaCHM/saved_checkpoints/SSLhuge_satellite.pth'
 
 model_dir: '${main_dir}/models/${model_name}/${version}'
+
+callbacks:
+  - "pl.pytorch.callbacks.ModelCheckpoint(monitor='val_loss', dirpath='${model_dir}', save_top_k=1, save_last=True)"
+  - "pl.pytorch.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.00, patience=5)"
+
+loggers:
+  - "pl.pytorch.loggers.TensorBoardLogger(save_dir='${model_dir}', name='tensorboard_logs')"
+  - "pl.pytorch.loggers.CSVLogger(save_dir='${model_dir}', name='csv_logs')"
 
 input_bands:
  - B
