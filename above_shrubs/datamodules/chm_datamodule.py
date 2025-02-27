@@ -4,6 +4,8 @@ from torch.utils.data import DataLoader
 from torchgeo.datamodules import NonGeoDataModule
 from above_shrubs.datasets.chm_dataset import CHMDataset
 
+__status__ = "Production"
+
 
 class CHMDataModule(NonGeoDataModule):
     """NonGeo CHM data module implementation"""

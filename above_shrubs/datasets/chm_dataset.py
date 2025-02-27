@@ -7,6 +7,8 @@ from typing import Any
 from pathlib import Path
 from torchgeo.datasets import NonGeoDataset
 
+__status__ = "Production"
+
 
 class CHMDataset(NonGeoDataset):
     """
