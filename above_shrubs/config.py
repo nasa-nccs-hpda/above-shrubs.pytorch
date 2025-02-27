@@ -13,6 +13,7 @@ class Config:
     model_name: Optional[str] = 'dinov2_rs'  # resnet, custom_unet
     version: Optional[str] = '3.0.0'
     main_dir: Optional[str] = 'output'
+    metadata_filename: Optional[str] = None
 
     # training resources
     gpu_devices: Optional[str] = None
