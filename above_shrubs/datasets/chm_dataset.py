@@ -72,7 +72,7 @@ class CHMDataset(NonGeoDataset):
             image = self.transform(image)
             label = self.transform_labels(label)
 
-        return image, label
+        return {'image': image, 'mask': label}
 
     def _load_file(self, path: Path):
         if Path(path).suffix == '.npy':
