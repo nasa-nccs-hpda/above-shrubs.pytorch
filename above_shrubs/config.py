@@ -33,6 +33,12 @@ class Config:
     test_data_dir: Optional[str] = None
     test_label_dir: Optional[str] = None
 
+    # number of training images to use
+    # sometimes we just want to train with a fixed
+    # number of images, -1 implies all images
+    # will be used
+    num_train_images: Optional[int] = -1
+
     # seed value
     seed: int = 42
 
@@ -69,6 +75,11 @@ class Config:
 
     # resnet50 pre-trained weights
     weights: Optional[str] = 'ResNet50_Weights.LANDSAT_TM_TOA_SIMCLR'
+
+    # Callbacks function expression, expects list of metrics
+    callbacks: List[str] = field(
+        default_factory=lambda: ["pl.pytorch.callbacks.ModelCheckpoint"]
+    )
 
     # These are hardcoded for now based on our 4-band VHR SR merged tiles
     # set from ifsar + lidar training used for 20231014 in mjm dir
