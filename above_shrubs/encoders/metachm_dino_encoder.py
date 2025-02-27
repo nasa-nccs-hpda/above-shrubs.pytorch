@@ -772,9 +772,9 @@ class SSLVisionTransformer(DinoVisionTransformer):
                 pretrained=None,
                 img_size=224, 
                 patch_size=16,
-                #embed_dim=1024, 
-                #depth=24, 
-                #num_heads=16, 
+                #embed_dim=1024,
+                #depth=24,
+                #num_heads=16,
                 mlp_ratio=4,
                 qkv_bias=True,
                 init_values=1.,
@@ -784,8 +784,8 @@ class SSLVisionTransformer(DinoVisionTransformer):
                 output_cls_token=True,
                 frozen_stages=100,
                  *args, **kwargs):
-        super(SSLVisionTransformer, self).__init__(*args, **kwargs) 
-       
+        super(SSLVisionTransformer, self).__init__(*args, **kwargs)
+
         if output_cls_token:
             assert with_cls_token is True, f'with_cls_token must be True if' \
                 f'set output_cls_token to True, but got {with_cls_token}'
@@ -799,9 +799,8 @@ class SSLVisionTransformer(DinoVisionTransformer):
         elif pretrained is not None:
             raise TypeError('pretrained must be a str or None')
 
-            
-        if len(self.blocks)==1:    
-            self.blocks = self.blocks[0] 
+        if len(self.blocks) == 1:
+            self.blocks = self.blocks[0]
         if isinstance(out_indices, int):
             if out_indices == -1:
                 out_indices = len(self.blocks) - 1
@@ -819,10 +818,11 @@ class SSLVisionTransformer(DinoVisionTransformer):
         self.output_cls_token = output_cls_token
         self.final_norm = final_norm
         self.patch_size = self.patch_embed.patch_size
-        self.adapad = AdaptivePadding(kernel_size=self.patch_size, stride=self.patch_size, padding='same')
+        self.adapad = AdaptivePadding(
+            kernel_size=self.patch_size, stride=self.patch_size, padding='same')
         if pretrained:
             self.init_weights(pretrained)
-        
+
         self._freeze_stages()
 
     @staticmethod
@@ -853,12 +853,11 @@ class SSLVisionTransformer(DinoVisionTransformer):
         pos_embed_weight = torch.flatten(pos_embed_weight, 2).transpose(1, 2)
         pos_embed = torch.cat((cls_token_weight, pos_embed_weight), dim=1)
         return pos_embed
-    
+
     def init_weights(self, pretrained):
-        print("init_weights", pretrained)
         if (isinstance(self.init_cfg, dict)
                 and self.init_cfg.get('type') == 'Pretrained'):
-            
+
             checkpoint = torch.load(pretrained, map_location='cpu')
             if 'state_dict' in checkpoint:
                 # timm checkpoint
@@ -871,7 +870,7 @@ class SSLVisionTransformer(DinoVisionTransformer):
                 state_dict = checkpoint['teacher']
             else:
                 state_dict = checkpoint
-            
+
             if len([k for k in state_dict.keys() if 'teacher.backbone.' in k]) > 0:
                 state_dict = {k.replace('teacher.backbone.', ''):v for k,v in state_dict.items() if 'teacher.backbone' in k}
             if len([k for k in state_dict.keys() if 'backbone.' in k]) > 0:
@@ -892,10 +891,10 @@ class SSLVisionTransformer(DinoVisionTransformer):
             self.load_state_dict(state_dict, strict=False)
         else:
             super(SSLVisionTransformer, self).init_weights()
-            
+
 
     def forward(self, x):
-        
+
         with torch.set_grad_enabled(not self.detach):
             _, _, old_w, old_h = x.shape
             xx = self.adapad(x)

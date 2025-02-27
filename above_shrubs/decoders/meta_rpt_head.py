@@ -3,26 +3,19 @@
 # This source code is licensed under the Apache License, Version 2.0
 # found in the LICENSE file in the root directory of this source tree.
 
+import os
 import torch
-import math
-import torch
-from torch import nn
-import torchvision
-
-from above_shrubs.decoders.base import resize
 import torch.nn as nn
-import pytorch_lightning as pl
+import segmentation_models_pytorch as smp
+
+from typing import Any
+from above_shrubs.decoders.base import resize
 from above_shrubs.encoders.metachm_dino_encoder import SSLVisionTransformer
 from above_shrubs.decoders.meta_dpt_head import DPTHead
+from torchvision.models._api import WeightsEnum
+from torchgeo.trainers.utils import extract_backbone, load_state_dict
+from torchgeo.trainers import PixelwiseRegressionTask
 
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-#
-# This source code is licensed under the Apache License, Version 2.0
-# found in the LICENSE file in the root directory of this source tree.
-
-import torch
-from torch import nn
-import torchvision
 
 def kaiming_init(module: nn.Module,
                  a: float = 0,
@@ -87,7 +80,6 @@ class Interpolate(nn.Module):
 class HeadDepth(nn.Module):
     def __init__(self, features):
         super(HeadDepth, self).__init__()
-        print("BAAHAHAHAHA", type(features))
         self.head = nn.Sequential(
             nn.Conv2d(features, features // 2, kernel_size=3, stride=1, padding=1),
             Interpolate(scale_factor=2, mode="bilinear", align_corners=True),
@@ -187,10 +179,76 @@ class MetaDinoV2RS(nn.Module):
                 classify=False
             )
         else:
-            self.backbone = SSLVisionTransformer(pretrained=pretrained)
+            self.backbone = SSLVisionTransformer(init_cfg=pretrained)
             self.decode_head = RPTHead()
 
     def forward(self, x):
         x = self.backbone(x)
         x = self.decode_head(x)
         return x
+
+
+class MetaDinoV2RS_Lightning(PixelwiseRegressionTask):
+
+    def configure_models(self) -> None:
+        """Initialize the model."""
+        weights = self.weights
+
+        if self.hparams['model'] == 'unet':
+            self.model = smp.Unet(
+                encoder_name=self.hparams['backbone'],
+                encoder_weights='imagenet' if weights is True else None,
+                in_channels=self.hparams['in_channels'],
+                classes=1,
+            )
+        elif self.hparams['model'] == 'deeplabv3+':
+            self.model = smp.DeepLabV3Plus(
+                encoder_name=self.hparams['backbone'],
+                encoder_weights='imagenet' if weights is True else None,
+                in_channels=self.hparams['in_channels'],
+                classes=1,
+            )
+        elif self.hparams['model'] == 'fcn':
+            self.model = FCN(
+                in_channels=self.hparams['in_channels'],
+                classes=1,
+                num_filters=self.hparams['num_filters'],
+            )
+        elif self.hparams['model'] == 'dinov2':
+            self.model = MetaDinoV2RS(
+                pretrained=weights,
+                huge=True,
+                input_bands=self.hparams['in_channels']
+            )
+        else:
+            raise ValueError(
+                f"Model type '{self.hparams['model']}' is not valid. "
+                "Currently, only supports 'unet', 'deeplabv3+', 'dinov2' and 'fcn'."
+            )
+
+        if self.hparams['model'] != 'fcn' and self.hparams['model'] != 'dinov2':
+            if weights and weights is not True:
+                if isinstance(weights, WeightsEnum):
+                    state_dict = weights.get_state_dict(progress=True)
+                elif os.path.exists(weights):
+                    _, state_dict = extract_backbone(weights)
+                else:
+                    state_dict = get_weight(weights).get_state_dict(
+                        progress=True)
+                self.model.encoder.load_state_dict(state_dict)
+
+        # Freeze backbone
+        if self.hparams.get('freeze_backbone', False) and self.hparams['model'] in [
+            'unet',
+            'deeplabv3+',
+        ]:
+            for param in self.model.encoder.parameters():
+                param.requires_grad = False
+
+        # Freeze decoder
+        if self.hparams.get('freeze_decoder', False) and self.hparams['model'] in [
+            'unet',
+            'deeplabv3+',
+        ]:
+            for param in self.model.decoder.parameters():
+                param.requires_grad = False
