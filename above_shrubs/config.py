@@ -81,6 +81,17 @@ class Config:
         default_factory=lambda: ["pl.pytorch.callbacks.ModelCheckpoint"]
     )
 
+    # Logger function expression, expects a string with the function
+    loggers: List[str] = field(
+        default_factory=lambda: [
+            "pl.pytorch.loggers.TensorBoardLogger" + \
+            "(save_dir='output', name='tensorboard_logs')"
+        ]
+    )
+
+    # fast_dev_run if we want a quick run
+    fast_dev_run: Optional[bool] = False
+
     # These are hardcoded for now based on our 4-band VHR SR merged tiles
     # set from ifsar + lidar training used for 20231014 in mjm dir
     # TODO: get this on the fly or read in directly somehow

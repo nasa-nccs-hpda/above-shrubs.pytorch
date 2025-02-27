@@ -18,9 +18,10 @@ class CHMDataModule(NonGeoDataModule):
                 test_label_dir: str = None,
                 batch_size: int = 16,
                 num_workers: int = 8,
-                transform=None,
+                transform_images=None,
                 transform_labels=None,
                 n_images: int = -1,
+                prefetch_factor: int = 4,
                 **kwargs: Any
             ) -> None:
 
@@ -38,16 +39,17 @@ class CHMDataModule(NonGeoDataModule):
         self.test_label_dir = test_label_dir
 
         # transforms and number of images to use
-        self.transform = transform
+        self.transform_images = transform_images
         self.transform_labels = transform_labels
         self.n_images = n_images
+        self.prefetch_factor = prefetch_factor
 
     def setup(self, stage: str = None) -> None:
         if stage in ["fit"] or stage is None:
             self.train_dataset = self.dataset_class(
                 self.train_data_dir,
                 self.train_label_dir,
-                self.transform,
+                self.transform_images,
                 self.transform_labels,
                 self.n_images
             )
@@ -55,7 +57,7 @@ class CHMDataModule(NonGeoDataModule):
             self.val_dataset = self.dataset_class(
                 self.test_data_dir,
                 self.test_label_dir,
-                self.transform,
+                self.transform_images,
                 self.transform_labels,
                 self.n_images
             )
@@ -63,7 +65,7 @@ class CHMDataModule(NonGeoDataModule):
             self.test_dataset = self.dataset_class(
                 self.test_data_dir,
                 self.test_label_dir,
-                self.transform,
+                self.transform_images,
                 self.transform_labels,
                 self.n_images
             )
@@ -78,7 +80,9 @@ class CHMDataModule(NonGeoDataModule):
             self.train_dataset,
             batch_size=self.batch_size,
             shuffle=True,
-            num_workers=self.num_workers
+            num_workers=self.num_workers,
+            pin_memory=True,
+            prefetch_factor=self.prefetch_factor
         )
 
     def val_dataloader(self):
@@ -86,7 +90,9 @@ class CHMDataModule(NonGeoDataModule):
             self.val_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=self.num_workers
+            num_workers=self.num_workers,
+            pin_memory=True,
+            prefetch_factor=self.prefetch_factor
         )
 
     def test_dataloader(self):
@@ -94,7 +100,9 @@ class CHMDataModule(NonGeoDataModule):
             self.test_dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=self.num_workers
+            num_workers=self.num_workers,
+            pin_memory=True,
+            prefetch_factor=self.prefetch_factor
         )
 
 
