@@ -1,3 +1,5 @@
+# sbatch -q ilab --mem-per-cpu=10240 -G4 -c40 -t05-00:00:00 -J dv2-2.0.1 --wrap="singularity exec --env PYTHONPATH=/explore/nobackup/people/jacaraba/development/above-shrubs.pytorch --nv -B $NOBACKUP,/explore/nobackup/people,/explore/nobackup/projects /explore/nobackup/projects/ilab/containers/above-shrubs-pytorch.2025.01 python /explore/nobackup/people/jacaraba/development/above-shrubs.pytorch/above_shrubs/view/chm_pipeline_cli.py -c /explore/nobackup/projects/above/misc/ABoVE_Shrubs/development/configs/above_shrubs_chm_dinov2_rs_2.0.1.yaml -s train"
+
 project_name: above_shrubs
 experiment_type: 'chm'
 experiment_name: '${project_name}-${experiment_type}'
