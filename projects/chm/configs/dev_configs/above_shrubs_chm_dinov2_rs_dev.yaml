@@ -1,10 +1,9 @@
 project_name: above_shrubs
 experiment_type: 'chm'
 experiment_name: '${project_name}-${experiment_type}'
-model_name: dinov2
-version: x.x.x
+model_name: dinov2_rs
+version: 2.0.0
 main_dir: /explore/nobackup/projects/ilab/scratch/jacaraba/above-shrubs
-metadata_filename: '${main_dir}/models/mean-std-values.csv'
 
 #------------------------------------- Setup -------------------------------------#
 
@@ -20,16 +19,17 @@ test_data_dir:  /explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/
 test_label_dir: /explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/test_merged_chm
 test_tiles_dir: '/explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/test_merged_nodtm_npy'
 
-num_train_images: -1
-
 #------------------------------------- General -------------------------------------#
 
-num_epochs: 6000
-batch_size: 64
+# -1 means use all images, use low number for quick model testing
+num_train_images: -1
+
+batch_size: 256
 loss_func: 'mae'
 learning_rate: 1e-4
 weights: '/explore/nobackup/projects/ilab/data/MetaCHM/saved_checkpoints/SSLhuge_satellite.pth'
 
+metadata_filename: '${main_dir}/models/mean-std-values.csv'
 model_dir: '${main_dir}/models/${model_name}/${version}'
 
 callbacks:
