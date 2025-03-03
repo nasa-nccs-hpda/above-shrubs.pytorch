@@ -1,7 +1,8 @@
 project_name: above_shrubs
 experiment_type: 'chm'
 experiment_name: '${project_name}-${experiment_type}'
-model_name: resnet50
+backbone_name: resnet50
+decoder_name: 'fcn'
 version: 3.5.0
 main_dir: /explore/nobackup/projects/ilab/scratch/jacaraba/above-shrubs
 
@@ -22,7 +23,7 @@ test_tiles_dir: '/explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm
 #------------------------------------- General -------------------------------------#
 
 # -1 means use all images, use low number for quick model testing
-num_train_images: -1
+num_train_images: 100
 
 batch_size: 16
 loss_func: 'mae'
@@ -30,7 +31,7 @@ learning_rate: 0.05
 weights: 'ResNet18_Weights.SENTINEL2_ALL_MOCO'
 
 metadata_filename: '${main_dir}/models/mean-std-values.csv'
-model_dir: '${main_dir}/models/${model_name}/${version}'
+model_dir: '${main_dir}/models/${backbone_name}/${version}'
 
 callbacks:
   - "pl.pytorch.callbacks.ModelCheckpoint(monitor='val_loss', dirpath='${model_dir}', save_top_k=1, save_last=True)"
@@ -89,4 +90,4 @@ inference_regex_list:
   - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV03_20160817_M1BS_10400100201F1200-sr-02m.tif'
   - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV03_20160830_M1BS_10400100211C3B00-sr-02m.tif'
 
-inference_save_dir: '${main_dir}/${experiment_type}/${model_name}/${version}'
+inference_save_dir: '${main_dir}/${experiment_type}/${backbone_name}/${version}'

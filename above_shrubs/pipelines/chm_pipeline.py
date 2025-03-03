@@ -70,9 +70,11 @@ from transformers import AutoModel
 
 from above_shrubs.utils.callbacks_utils import get_callbacks
 from above_shrubs.utils.logger_utils import get_loggers
-from above_shrubs.decoders.meta_rpt_head import MetaDinoV2RS, MetaDinoV2RS_Lightning
+#from above_shrubs.decoders.meta_rpt_head import MetaDinoV2RS, MetaDinoV2RS_Lightning
 
 from pytorch_lightning.strategies import DDPStrategy
+
+from above_shrubs.utils.model_utils import CHMPixelwiseRegressionTask
 
 CHUNKS = {'band': 'auto', 'x': 'auto', 'y': 'auto'}
 xp = np
@@ -332,11 +334,11 @@ class CHMPipeline(BasePipeline):
         self._set_train_test_dirs()
 
         # Get model
-        model = self.get_model(self.conf.model_name)
+        # model = self.get_model(self.conf.model_name)
 
         # Setup transforms
         transform_images, transform_labels = self.get_transforms(
-            self.conf.model_name)
+            self.conf.backbone_name)
 
         # Load data module
         datamodule = CHMDataModule(
@@ -362,10 +364,11 @@ class CHMPipeline(BasePipeline):
         loggers = get_loggers(self.conf.loggers)
 
         # Create a task to train with
-        task = MetaDinoV2RS_Lightning(
+        # MetaDinoV2RS_Lightning
+        task = CHMPixelwiseRegressionTask(
             loss=self.conf.loss_func,
-            model=self.conf.model_name,  # 'fcn' 'deeplabv3+',
-            backbone=self.conf.model_name,
+            model=self.conf.decoder_name,  # 'fcn' 'deeplabv3+',
+            backbone=self.conf.backbone_name,
             weights=self.conf.weights,
             in_channels=len(self.conf.output_bands),
             num_outputs=1,  # since pixelwise, we get a single layer of output
@@ -382,7 +385,7 @@ class CHMPipeline(BasePipeline):
             logger=loggers,
             min_epochs=1,
             max_epochs=self.conf.num_epochs,
-            strategy="ddp_find_unused_parameters_true"  # Fix for unused parameters
+            strategy="ddp_find_unused_parameters_true"
         )
 
         # train our model
@@ -390,6 +393,8 @@ class CHMPipeline(BasePipeline):
 
         # test our model
         trainer.test(model=task, datamodule=datamodule)
+
+        return
 
     def train_old_old(self):
         """
@@ -510,7 +515,7 @@ class CHMPipeline(BasePipeline):
         # Turn on resnet50 using a var in config
         #
         elif self.conf.model_name == 'resnet50':
-            
+
             #model='resnet50', backbone='resnet50', weights=None, in_channels=3, 
             # num_outputs=1, num_filters=3, loss='mse', lr=0.001, patience=10, 
             # freeze_backbone=False, freeze_decoder=False
@@ -935,29 +940,26 @@ class CHMPipeline(BasePipeline):
         return mean, std
 
     # -------------------------------------------------------------------------
-    # get_model
-    # -------------------------------------------------------------------------
-    def get_model(self, model_name: str):
-        if model_name == 'dinov2':
-            model = MetaDinoV2RS(
-                pretrained=self.conf.weights,
-                huge=True,
-                input_bands=len(self.conf.output_bands)
-            )
-        elif model_name == 'resnet50':
-            model = None
-        return model
-
-    # -------------------------------------------------------------------------
     # get_transforms
     # -------------------------------------------------------------------------
     def get_transforms(self, model_name: str):
 
-        if model_name == 'dinov2':
+        if model_name == 'dinov2_rs':
             # Setup transforms, currently fixed, will need them to be dynamic
             # Check on how to do this later
             # Ensure compatibility with MetaDinoV2RS, but what about the other
             # models we will need to support
+            images_transform = transforms.Compose([
+                transforms.Resize((224, 224)),
+                transforms.Normalize(
+                    mean=self.conf.preprocessing_mean_vector,
+                    std=self.conf.preprocessing_std_vector)  # Normalize
+            ])
+            # Ensure compatibility with MetaDinoV2RS
+            labels_transform = transforms.Compose([
+                transforms.Resize((224, 224)),
+            ])
+        else:
             images_transform = transforms.Compose([
                 transforms.Resize((224, 224)),
                 transforms.Normalize(
