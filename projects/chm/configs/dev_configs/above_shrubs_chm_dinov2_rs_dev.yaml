@@ -31,13 +31,14 @@ batch_size: 64
 loss_func: 'mae'
 learning_rate: 1e-4
 weights: '/explore/nobackup/projects/ilab/data/MetaCHM/saved_checkpoints/SSLhuge_satellite.pth'
+patience: 5
 
 metadata_filename: '${main_dir}/models/mean-std-values.csv'
 model_dir: '${main_dir}/models/${backbone_name}/${version}'
 
 callbacks:
   - "pl.pytorch.callbacks.ModelCheckpoint(monitor='val_loss', dirpath='${model_dir}', save_top_k=1, save_last=True)"
-  - "pl.pytorch.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.00, patience=5)"
+  - "pl.pytorch.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.00, patience=${patience})"
 
 loggers:
   - "pl.pytorch.loggers.TensorBoardLogger(save_dir='${model_dir}', name='tensorboard_logs')"
