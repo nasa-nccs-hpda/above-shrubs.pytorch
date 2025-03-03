@@ -10,7 +10,11 @@ class Config:
 
     # where is this coming from
     experiment_name: Optional[str] = None
-    model_name: Optional[str] = 'dinov2_rs'  # resnet, custom_unet
+
+    # model_name: Optional[str] = 'dinov2_rs'  # resnet, custom_unet
+    backbone_name: Optional[str] = 'dinov2_rs' # dinov2_rs, resnet, custom_unet
+    decoder_name: Optional[str] = 'dinov2_rs_rpt' # dinov2_rs_rpt, fcn, unet
+
     version: Optional[str] = '3.0.0'
     main_dir: Optional[str] = 'output'
     metadata_filename: Optional[str] = None
