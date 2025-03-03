@@ -70,7 +70,6 @@ from transformers import AutoModel
 
 from above_shrubs.utils.callbacks_utils import get_callbacks
 from above_shrubs.utils.logger_utils import get_loggers
-#from above_shrubs.decoders.meta_rpt_head import MetaDinoV2RS, MetaDinoV2RS_Lightning
 
 from pytorch_lightning.strategies import DDPStrategy
 
@@ -80,84 +79,6 @@ CHUNKS = {'band': 'auto', 'x': 'auto', 'y': 'auto'}
 xp = np
 
 __status__ = "Development"
-
-
-
-"""
-class PixelwiseRegressionModel(pl.LightningModule):
-    def __init__(self, model):
-        super(PixelwiseRegressionModel, self).__init__()
-        self.model = model
-
-    def forward(self, x):
-        return self.model(x)
-
-    def training_step(self, batch, batch_idx):
-        images = batch["pixel_values"]
-        target_maps = batch["labels"]
-        print(images.shape,target_maps.shape )
-        outputs = self(images)
-        loss = F.mse_loss(outputs, target_maps)
-        self.log("train_loss", loss)
-        return loss
-
-    def validation_step(self, batch, batch_idx):
-        images = batch["pixel_values"]
-        target_maps = batch["labels"]
-        outputs = self(images)
-        loss = F.mse_loss(outputs, target_maps)
-        self.log("val_loss", loss)
-        return loss
-
-    def configure_optimizers(self):
-        return torch.optim.Adam(self.model.parameters(), lr=0.001)
-
-# Define a custom model for pixel-wise regression
-class DinoV2PixelwiseRegressionModel(nn.Module):
-    def __init__(self, backbone, num_channels=256):
-        super(DinoV2PixelwiseRegressionModel, self).__init__()
-        self.backbone = backbone
-        # Define a convolutional decoder head for pixel-wise predictions
-        self.conv_head = nn.Sequential(
-            nn.Conv2d(self.backbone.config.hidden_size, num_channels, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(num_channels, 1, kernel_size=1)  # Output 1 channel for regression
-        )
-
-   
-    def forward(self, x):
-        # Pass through the backbone to get spatial features
-        features = self.backbone(x).last_hidden_state  # Shape: (batch_size, seq_len, hidden_size)
-        
-        # Reshape to (batch_size, hidden_size, height, width) for pixel-wise conv head
-        batch_size, seq_len, hidden_size = features.size()
-        height = width = int(seq_len ** 0.5)  # Assume input is square
-        features = features.permute(0, 2, 1).reshape(batch_size, hidden_size, height, width)
-        
-        # Apply the convolutional head for pixel-wise regression
-        output = self.conv_head(features)  # Output shape: (batch_size, 1, height, width)
-        return output
-   
-    def forward(self, x):
-        # Pass through the backbone to get features
-        features = self.backbone(x).last_hidden_state  # Shape: (batch_size, seq_len, hidden_size)
-
-        # Exclude the class token
-        features = features[:, 1:, :]  # Now features has shape (batch_size, 324, hidden_size)
-
-        # Update dimensions
-        batch_size, seq_len, hidden_size = features.shape
-        print(batch_size, seq_len, hidden_size)
-        height = width = int(seq_len ** 0.5)  # Should be 18 in this case
-
-        # Reshape features to (batch_size, hidden_size, height, width)
-        features = features.permute(0, 2, 1).reshape(batch_size, hidden_size, height, width)
-
-        # Apply the convolutional head for pixel-wise regression
-        output = self.conv_head(features)  # Output shape: (batch_size, 1, height, width)
-        return output
-
-"""
 
 
 class CHMPipeline(BasePipeline):
@@ -332,9 +253,6 @@ class CHMPipeline(BasePipeline):
 
         # Set working directories for training
         self._set_train_test_dirs()
-
-        # Get model
-        # model = self.get_model(self.conf.model_name)
 
         # Setup transforms
         transform_images, transform_labels = self.get_transforms(
