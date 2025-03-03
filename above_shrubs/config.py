@@ -11,9 +11,11 @@ class Config:
     # where is this coming from
     experiment_name: Optional[str] = None
 
-    # model_name: Optional[str] = 'dinov2_rs'  # resnet, custom_unet
-    backbone_name: Optional[str] = 'dinov2_rs' # dinov2_rs, resnet, custom_unet
-    decoder_name: Optional[str] = 'dinov2_rs_rpt' # dinov2_rs_rpt, fcn, unet
+    # dinov2_rs, resnet, custom_unet
+    backbone_name: Optional[str] = 'dinov2_rs'
+
+    # dinov2_rs_rpt, fcn, unet
+    decoder_name: Optional[str] = 'dinov2_rs_rpt'
 
     version: Optional[str] = '3.0.0'
     main_dir: Optional[str] = 'output'
@@ -47,7 +49,7 @@ class Config:
     seed: int = 42
 
     # do we need to z-score tiles
-    standardization: Optional[bool] = False
+    standardization: Optional[str] = 'global'
 
     # tile size - training/testing chip size
     # we get tile_size automatically from first tile - this is
@@ -88,7 +90,7 @@ class Config:
     # Logger function expression, expects a string with the function
     loggers: List[str] = field(
         default_factory=lambda: [
-            "pl.pytorch.loggers.TensorBoardLogger" + \
+            "pl.pytorch.loggers.TensorBoardLogger" +
             "(save_dir='output', name='tensorboard_logs')"
         ]
     )
@@ -123,6 +125,9 @@ class Config:
     inference_save_dir: str = "results"
     experiment_type: Optional[str] = 'output'
     model_dir: Optional[str] = 'output'
+
+    # model filename in case you want to specify one
+    model_filename: Optional[str] = None
 
     # filenames storing cloud mask
     cloudmask_path: Optional[str] = None

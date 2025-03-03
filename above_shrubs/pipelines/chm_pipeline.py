@@ -314,192 +314,6 @@ class CHMPipeline(BasePipeline):
 
         return
 
-    def train_old_old(self):
-        """
-        Perform general training.
-        """
-        logging.info('Starting training stage')
-
-        # Set working directories for training
-        self._set_train_test_dirs()
-
-        # set model options
-        
-        batch_size = self.conf.batch_size # PMM edit
-        num_workers = 2
-        max_epochs = 6000
-        fast_dev_run = False
-
-        train_transform = transforms.Compose([
-            transforms.Resize((448, 448)),                   # Resize to 448x448
-            #transforms.RandomHorizontalFlip(p=0.5),          # Horizontal flip with 50% probability
-            #transforms.RandomRotation(90),                   # Random rotation by up to 90 degrees
-            transforms.ToTensor(),                           # Convert to tensor
-            #transforms.Normalize(mean=(0.5,), std=(0.5,)),   # Normalize with mean and std
-        ])
-
-        datamodule = CHMDataModule(
-            train_data_dir=self.train_data_dir,
-            train_label_dir=self.train_label_dir,
-            test_data_dir=self.test_data_dir,
-            test_label_dir=self.test_label_dir,
-            batch_size=batch_size,
-            num_workers=40,
-            transform=train_transform
-        )
-        logging.info('Loaded data module')
-        from transformers import AutoConfig, AutoModel
-
-        # TODO: can we turn on dinov2_rs using a var in config
-        if self.conf.model_name == 'dinov2_rs':
-
-
-            weights_path = '/explore/nobackup/projects/ilab/data/MetaCHM/saved_checkpoints/SSLhuge_satellite.pth'
-            model = MetaDinoV2RS(pretrained=weights_path, huge=True, input_bands=len(self.conf.output_bands))
-
-            transform = transforms.Compose([
-                transforms.Resize((224, 224)),  # Ensure compatibility with MetaDinoV2RS
-                transforms.Normalize(
-                    mean=self.conf.preprocessing_mean_vector,
-                    std=self.conf.preprocessing_std_vector)  # Normalize
-            ])
-            transform_labels = transforms.Compose([
-                # transforms.ToTensor(), 
-                transforms.Resize((224, 224)),  # Ensure compatibility with MetaDinoV2RS
-            ])
-
-            dataset = CHMDatasetTorch(
-                image_paths=f'{self.conf.train_tiles_dir}/images',
-                mask_paths=f'{self.conf.train_tiles_dir}/labels',
-                transform=transform,
-                transform_labels=transform_labels
-            )
-            train_loader = torch.utils.data.DataLoader(
-                dataset,
-                batch_size=self.conf.batch_size,
-                shuffle=True,
-                num_workers=40,         # Number of CPU workers for loading
-                pin_memory=True,       # Enable pinned memory
-                prefetch_factor=4
-            )
-
-            if self.conf.loss_func == 'mse': criterion = torch.nn.MSELoss()
-            if self.conf.loss_func == 'mae': criterion = torch.nn.L1Loss()
-            
-            optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
-            scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
-
-            # Load model
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            model = model.to(device)
-
-            # Wrap the model with DataParallel
-            if torch.cuda.device_count() > 1:
-                print(f"Using {torch.cuda.device_count()} GPUs!")
-                model = nn.DataParallel(model)
-
-            model = model.to(device)
-
-            num_epochs = self.conf.num_epochs
-
-            for epoch in range(num_epochs):
-                model.train()
-                running_loss = 0.0
-
-                for images, labels in train_loader:
-                    images, labels = images.to(device), labels.to(device)
-
-                    optimizer.zero_grad()
-                    outputs = model(images)
-                    loss = criterion(outputs, labels)
-
-                    loss.backward()
-                    optimizer.step()
-
-                    running_loss += loss.item()
-
-                scheduler.step()
-
-                print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {running_loss/len(train_loader):.4f}")
-                #torch.save(model.state_dict(), f"fine_tuned_metadino_{epoch}.pth")
-
-            # Save the fine-tuned model
-            torch.save(
-                model.state_dict(),
-                os.path.join(self.conf.model_dir, 'last_epoch.ckpt')
-            )
-
-        #
-        # Turn on resnet50 using a var in config
-        #
-        elif self.conf.model_name == 'resnet50':
-
-            #model='resnet50', backbone='resnet50', weights=None, in_channels=3, 
-            # num_outputs=1, num_filters=3, loss='mse', lr=0.001, patience=10, 
-            # freeze_backbone=False, freeze_decoder=False
-
-            # TODO: check this; is it used below?
-            #model = torchgeo.models.vit_small_patch16_224(weights=torchgeo.models.ViTSmall16_Weights.LANDSAT_TM_TOA_MOCO)
-            #task = PixelwiseRegressionTask(
-            #    loss='mse',
-            #    model='unet', #'deeplabv3+',
-            #    weights=ScaleMAE_ViTLarge16_Weights.FMOW_RGB_SCALEMAE,#ResNet18_Weights.SENTINEL2_ALL_MOCO,
-            #    in_channels=5,
-            #    num_outputs=1,
-            #    lr=0.1,
-            #    patience=5,
-            #)
-
-            #
-            # Select weights 
-            # DOFABase16_Weights.DOFA_MAE - an architecture that lets us have foundation models relevant for a variety of sensors - in theory
-            #
-            if self.conf.weights == 'ResNet50_Weights.LANDSAT_TM_TOA_SIMCLR': weights = torchgeo.models.ResNet50_Weights.LANDSAT_TM_TOA_SIMCLR
-            if self.conf.weights == 'DOFABase16_Weights.DOFA_MAE': weights = torchgeo.models.DOFABase16_Weights.DOFA_MAE
-            if self.conf.weights == 'DOFALarge16_Weights.DOFA_MAE': weights = torchgeo.models.DOFALarge16_Weights.DOFA_MAE
-            if self.conf.weights == 'ScaleMAE_ViTLarge16_Weights.FMOW_RGB_SCALEMAE': weights = torchgeo.models.ScaleMAE_ViTLarge16_Weights.FMOW_RGB_SCALEMAE
-            if self.conf.weights == 'ViTSmall16_Weights.LANDSAT_TM_TOA_MOCO': weights = torchgeo.models.ViTSmall16_Weights.LANDSAT_TM_TOA_MOCO
-            if self.conf.weights == 'ResNet18_Weights.SENTINEL2_ALL_MOCO': weights = torchgeo.models.ResNet18_Weights.SENTINEL2_ALL_MOCO
-
-            task = PixelwiseRegressionTask(
-                loss=self.conf.loss_func,
-                model=self.conf.decoder, #'fcn' 'deeplabv3+',
-                backbone=self.conf.model_name,
-                weights=weights,
-                in_channels=len(self.conf.output_bands), 
-                num_outputs=1, # since pixelwise, we get a single layer of output
-                lr=self.conf.learning_rate, 
-                patience=self.conf.patience
-            )
-
-            accelerator = 'gpu' if torch.cuda.is_available() else 'cpu'
-            #default_root_dir = os.path.join(self.conf.work_dir, 'experiments')
-            checkpoint_callback = ModelCheckpoint(
-                monitor='val_loss', dirpath=self.conf.model_dir, save_top_k=1, save_last=True
-            )
-            early_stopping_callback = EarlyStopping(monitor='val_loss', min_delta=0.00, patience=20)
-            logger = TensorBoardLogger(save_dir=self.conf.model_dir, name='tensorboard_logs')
-
-            trainer = Trainer(
-                accelerator=accelerator,
-                callbacks=[checkpoint_callback, early_stopping_callback],
-                fast_dev_run=fast_dev_run,
-                log_every_n_steps=1,
-                logger=logger,
-                min_epochs=1,
-                max_epochs=max_epochs,
-            )
-
-            trainer.fit(model=task, datamodule=datamodule)
-
-            trainer.test(model=task, datamodule=datamodule)
-
-
-
-        return
-
-
-
     def modify_bands(
             self, xraster: xr.core.dataarray.DataArray, input_bands: List[str],
             output_bands: List[str], drop_bands: List[str] = []):
@@ -537,53 +351,18 @@ class CHMPipeline(BasePipeline):
 
         logging.info('Starting prediction stage')
 
-        # Load model for inference
-        # model = load_model(
-        #    model_filename=self.conf.model_filename,
-        #    model_dir=self.model_dir
-        # )
-        # task = PixelwiseRegressionTask.load_from_checkpoint(
-        #    "/explore/nobackup/projects/ilab/projects/ABoVE-Shrubs/development/chm_fm_models_testing/experiments/epoch=7-step=3064.ckpt")
-        # good
-        # task = PixelwiseRegressionTask.load_from_checkpoint(
-        #    "/explore/nobackup/projects/ilab/projects/ABoVE-Shrubs/development/chm_fm_models_testing/scalemae/experiments/epoch=3-step=1532-v1.ckpt")
-        # better 2.2.2
-        # task = PixelwiseRegressionTask.load_from_checkpoint(
-        #    '/explore/nobackup/projects/ilab/projects/ABoVE-Shrubs/development/chm_fm_models_testing/scalemae-test-loss/epoch=5-step=2298.ckpt')
-        # task = task = PixelwiseRegressionTask.load_from_checkpoint(
-        #    '/explore/nobackup/projects/ilab/projects/ABoVE-Shrubs/development/chm_fm_models_testing/experiments_deeplabv3/epoch=7-step=3064.ckpt')
+        # if the model is not specified, take the last one
+        if self.conf.model_filename is not None:
+            latest_model_file = self.conf.model_filename
+        else:
+            latest_model_file = max(
+                (glob(os.path.join(self.conf.model_dir, 'epoch*.ckpt'))),
+                key=os.path.getmtime
+            )
 
-        latest_model_file = max(
-                    (glob(os.path.join(self.conf.model_dir, 'epoch*.ckpt'))),
-                        key=os.path.getmtime
-                        )
-        # TPredict with the latest model
-        task = PixelwiseRegressionTask.load_from_checkpoint(latest_model_file)
-        #    '/explore/nobackup/projects/ilab/projects/ABoVE-Shrubs/development/chm_fm_models/dinovs_rs_dev/experiments/epoch=2-step=1149.ckpt')
-        #model = task.model # PMM edit: this is not necessary since we just use task.model below
-    
-        # TODO: why is this commented out - we should use this instead of hardcoded MEAN, STD vectors right?
-        # Retrieve mean and std, there should be a more ideal place
-        # if self.conf.standardization in ["global", "mixed"]:
-        #    mean, std = get_mean_std_metadata(
-        #        os.path.join(
-        #            self.model_dir,
-        #            f'mean-std-{self.conf.experiment_name}.csv'
-        #        )
-        #    )
-        #    logging.info(f'Mean: {mean}, Std: {std}')
-        # else:
-        #    mean = None
-        #    std = None
-     
-
-        # gather metadata
-        #if self.conf.metadata_regex is not None:
-        #    metadata = read_metadata(
-        #        self.conf.metadata_regex,
-        #        self.conf.input_bands,
-        #        self.conf.output_bands
-        #    )
+        # task to predict with the latest model
+        task = CHMPixelwiseRegressionTask.load_from_checkpoint(
+            latest_model_file)
 
         # Gather filenames to predict
         if len(self.conf.inference_regex_list) > 0:
@@ -599,9 +378,6 @@ class CHMPipeline(BasePipeline):
             # start timer
             start_time = time.time()
 
-            # set output directory
-            #output_directory = os.path.join(
-            #    self.conf.inference_save_dir, Path(filename).stem)
             output_directory = self.conf.inference_save_dir
             os.makedirs(output_directory, exist_ok=True)
 
@@ -634,19 +410,6 @@ class CHMPipeline(BasePipeline):
 
                     logging.info(f'Starting to predict {filename}')
 
-                    # if metadata is available
-                    #if self.conf.metadata_regex is not None:
-
-                    #    # get timestamp from filename
-                    #    year_match = re.search(
-                    #        r'(\d{4})(\d{2})(\d{2})', filename)
-                    #    timestamp = str(int(year_match.group(2)))
-
-                    #    # get monthly values
-                    #    mean = metadata[timestamp]['median'].to_numpy()
-                    #    std = metadata[timestamp]['std'].to_numpy()
-                    #    self.conf.standardization = 'global'
-
                     # create lock file
                     open(lock_filename, 'w').close()
 
@@ -657,8 +420,6 @@ class CHMPipeline(BasePipeline):
                 except rasterio.errors.RasterioIOError:
                     logging.info(f'Skipped {filename}, probably corrupted.')
                     continue
-                # Calculate indices and append to the original raster
-
 
                 # Modify the bands to match inference details
                 logging.info('Modifying bands')
@@ -667,10 +428,9 @@ class CHMPipeline(BasePipeline):
                     output_bands=self.conf.output_bands)
                 logging.info(f'Prediction shape after modf: {image.shape}')
 
-                # add DTM
-                logging.info('Adding DTM layer')
-                # if image.shape[0] != len(self.conf.output_bands):
+                # add DTM if necessary
                 if 'dtm' in list(map(str.lower, self.conf.output_bands)):
+                    logging.info('Adding DTM layer')
                     image = self.add_dtm(filename, image, self.conf.dtm_path)
                     logging.info(f'Prediction shape after modf: {image.shape}')
 
@@ -697,10 +457,17 @@ class CHMPipeline(BasePipeline):
                 #    window=self.conf.window_algorithm
                 #) * self.conf.normalize_label
                 prediction = sliding_window_tiler_multiclass(
-                    image, model=task.model, n_classes=1, img_size=256,
-                                                        batch_size=256, mean=self.conf.preprocessing_mean_vector, 
-                                                        std=self.conf.preprocessing_std_vector)
-                # Set to 0
+                    image,
+                    model=task.model,
+                    n_classes=1,
+                    img_size=224,
+                    standardization=self.conf.standardization,
+                    batch_size=self.conf.batch_size,
+                    mean=self.conf.preprocessing_mean_vector,
+                    std=self.conf.preprocessing_std_vector
+                )
+
+                # Set to 0 for negative predictions
                 prediction[prediction < 0] = 0
 
                 # Drop image band to allow for a merge of mask
@@ -724,7 +491,8 @@ class CHMPipeline(BasePipeline):
                 prediction = prediction.transpose("band", "y", "x")
 
                 # Add cloudmask to the prediction
-                # TODO: cloudmasking seemingly not working? unclear b/c not all cloudmasks are in specified cloudmask dir - confusing
+                # TODO: cloudmasking seemingly not working? unclear b/c not 
+                # all cloudmasks are in specified cloudmask dir - confusing
                 if self.conf.cloudmask_path is not None:
 
                     # get the corresponding file that matches the
