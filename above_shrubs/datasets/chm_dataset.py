@@ -1,10 +1,13 @@
 import os
 import sys
+import torch
 import numpy as np
 import rioxarray as rxr
 from typing import Any
 from pathlib import Path
 from torchgeo.datasets import NonGeoDataset
+
+__status__ = "Production"
 
 
 class CHMDataset(NonGeoDataset):
@@ -12,20 +15,23 @@ class CHMDataset(NonGeoDataset):
     CHM Regression dataset from NonGeoDataset.
     """
 
+    # n_images: default is -1 for all, set a value
+    # depending on the number of images you are interested
+    # in using for training
+
     def __init__(
         self,
         image_paths: list,
         mask_paths: list,
-        img_size: tuple = (256, 256),
         transform=None,
+        transform_labels=None,
+        n_images: int = -1
     ) -> None:
         super().__init__()
 
-        # image size
-        self.image_size = img_size
-
         # transform
         self.transform = transform
+        self.transform_labels = transform_labels
 
         # images and labels path
         if isinstance(image_paths, str):
@@ -47,42 +53,37 @@ class CHMDataset(NonGeoDataset):
             self.image_list.extend(self.get_filenames(image_path))
             self.mask_list.extend(self.get_filenames(mask_path))
 
+        # get first n_images if needed
+        if n_images != -1:
+            self.image_list = self.image_list[:n_images]
+            self.mask_list = self.mask_list[:n_images]
+
         # rgb indices for some plots
         self.rgb_indices = [0, 1, 2]
 
     def __len__(self) -> int:
         return len(self.image_list)
 
-    # def __getitem__(self, idx, transpose=True):
-    #
-    #    # load image
-    #    img = np.load(self.image_list[idx])
-    #
-    #    # load mask
-    #    mask = np.load(self.mask_list[idx])
-    #    # perform transformations
-    #    if self.transform is not None:
-    #        img = self.transform(img)
-    #
-    #    return img, mask
-
     def __getitem__(self, index: int) -> dict[str, Any]:
-        output = {
-            "image": self._load_file(
-                self.image_list[index]).astype(np.float32),
-            "mask": self._load_file(
-                self.mask_list[index]).astype(np.int64),
-        }
-        return output
+        image = torch.from_numpy(self._load_file(
+            self.image_list[index]).astype(np.float32))
+        label = torch.from_numpy(self._load_file(
+            self.mask_list[index]).astype(np.float32))
+
+        if self.transform:
+            image = self.transform(image)
+            label = self.transform_labels(label)
+
+        return {'image': image, 'mask': label}
 
     def _load_file(self, path: Path):
         if Path(path).suffix == '.npy':
             data = np.load(path)
         elif Path(path).suffix == '.tif':
-            data = rxr.open_rasterio(path)
+            data = rxr.open_rasterio(path).to_numpy()
         else:
             sys.exit('Non-recognized dataset format. Expects npy or tif.')
-        return data.to_numpy()
+        return data
 
     def get_filenames(self, path):
         """

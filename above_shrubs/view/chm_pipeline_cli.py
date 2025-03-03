@@ -91,10 +91,10 @@ def main():
         pipeline.preprocess()
     if "train" in args.pipeline_step or "all" in args.pipeline_step:
         pipeline.train()
-    #if "predict" in args.pipeline_step or "all" in args.pipeline_step:
-    #    pipeline.predict(args.force_cleanup)
-    #if "validate" in args.pipeline_step or "all" in args.pipeline_step:
-    #    pipeline.validate()
+    if "predict" in args.pipeline_step or "all" in args.pipeline_step:
+        pipeline.predict(args.force_cleanup)
+    if "validate" in args.pipeline_step or "all" in args.pipeline_step:
+        pipeline.validate()
 
     logging.info(f'Took {(time.time()-timer)/60.0:.2f} min.')
 
