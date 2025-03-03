@@ -11,6 +11,7 @@ from glob import glob
 from pathlib import Path
 from datetime import datetime
 from above_shrubs.config import Config
+from omegaconf.listconfig import ListConfig
 
 try:
     import cupy as cp
@@ -18,8 +19,11 @@ try:
 except ImportError:
     HAS_GPU = False
 
+__status__ = "Production"
+
 
 class BasePipeline(object):
+
     # -------------------------------------------------------------------------
     # __init__
     # -------------------------------------------------------------------------
@@ -47,67 +51,28 @@ class BasePipeline(object):
         logging.info(f'Logged configuration file: {config_filename}')
 
         # Set working directory if not available in configuration file
-        if self.conf.work_dir is None:
-            self.conf.work_dir = os.path.join(
+        if self.conf.model_dir is None:
+            self.conf.model_dir = os.path.join(
                 Path.home(), 'above-shrubs-output')
 
         # Set logger
         self.logger = logger if logger is not None else self._set_logger()
-        logging.info(f'Log output available at {self.conf.work_dir}')
+        logging.info(f'Log output available at {self.conf.model_dir}')
 
         # Seed everything for repeatability
         self.seed_everything(self.conf.seed)
 
-        # output directory to store metadata and artifacts
-        self.metadata_dir = os.path.join(self.conf.work_dir, 'metadata')
-        os.makedirs(self.metadata_dir, exist_ok=True)
-        logging.info(f'Metadata dir: {self.metadata_dir}')
+        # train data directories
+        self.train_data_dir = os.path.join(
+            self.conf.train_tiles_dir, 'images')
+        self.train_label_dir = os.path.join(
+            self.conf.train_tiles_dir, 'labels')
 
-        """
-        # rewrite model filename option if given from CLI
-        if model_filename is not None:
-            assert os.path.exists(model_filename), \
-                f'{model_filename} does not exist.'
-            self.conf.model_filename = model_filename
-
-        # rewrite output directory if given from CLI
-        if output_dir is not None:
-            self.conf.inference_save_dir = output_dir
-            os.makedirs(self.conf.inference_save_dir, exist_ok=True)
-
-        # rewrite inference regex list
-        if inference_regex_list is not None:
-            self.conf.inference_regex_list = inference_regex_list
-
-
-
-        # Set output directories and locations
-        self.images_dir = os.path.join(self.conf.data_dir, 'images')
-        self.logger.info(f'Images dir: {self.images_dir}')
-
-        self.labels_dir = os.path.join(self.conf.data_dir, 'labels')
-        self.logger.info(f'Labels dir: {self.labels_dir}')
-
-        self.model_dir = self.conf.model_dir
-        self.logger.info(f'Model dir: {self.model_dir}')
-
-        # Create output directories
-        for out_dir in [
-                self.images_dir, self.labels_dir,
-                self.metadata_dir, self.model_dir]:
-            os.makedirs(out_dir, exist_ok=True)
-
-        logging.info(f'Output dir: {self.conf.inference_save_dir}')
-
-        # save configuration into the model directory
-        try:
-            OmegaConf.save(
-                self.conf, os.path.join(self.model_dir, 'config.yaml'))
-        except PermissionError:
-            logging.info('No permissions to save config, skipping step.')
-
-
-        """
+        # test data directories
+        self.test_data_dir = os.path.join(
+            self.conf.test_tiles_dir, 'images')
+        self.test_label_dir = os.path.join(
+            self.conf.test_tiles_dir, 'labels')
 
     # -------------------------------------------------------------------------
     # _read_config
@@ -146,9 +111,9 @@ class BasePipeline(object):
 
         # set filename output
         log_filename = f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}.log'
-        os.makedirs(os.path.join(self.conf.work_dir, 'logs'), exist_ok=True)
+        os.makedirs(os.path.join(self.conf.model_dir, 'logs'), exist_ok=True)
         fh = logging.FileHandler(
-            os.path.join(self.conf.work_dir, 'logs', log_filename))
+            os.path.join(self.conf.model_dir, 'logs', log_filename))
         fh.setLevel(logging.INFO)
         fh.setFormatter(formatter)
         logger.addHandler(fh)
@@ -169,6 +134,7 @@ class BasePipeline(object):
             None.
         """
         np.random.seed(int(seed))
+        torch.manual_seed(int(seed))
         if HAS_GPU:
             try:
                 cp.random.seed(int(seed))
@@ -196,8 +162,8 @@ class BasePipeline(object):
         Convert TIF to NP.
         """
         # open the imagery
-        image = rxr.open_rasterio(data_filename).values
-        label = rxr.open_rasterio(label_filename).values
+        image = rxr.open_rasterio(data_filename).values[:4, :, :]
+        label = rxr.open_rasterio(label_filename).values[:4, :, :]
 
         if np.isnan(label).any():
             return
@@ -264,3 +230,20 @@ class BasePipeline(object):
             pd.DataFrame(mean_std).to_csv(
                 output_filename, header=None, index=None)
         return mean, std
+
+    # -------------------------------------------------------------------------
+    # Getters
+    # -------------------------------------------------------------------------
+    def get_filenames(self, data_regex: str) -> list:
+        """
+        Get filename from list of regexes
+        """
+        # get the paths/filenames of the regex
+        filenames = []
+        if isinstance(data_regex, list) or isinstance(data_regex, ListConfig):
+            for regex in data_regex:
+                filenames.extend(glob(regex))
+        else:
+            filenames = glob(data_regex)
+        assert len(filenames) > 0, f'No files under {data_regex}'
+        return sorted(filenames)

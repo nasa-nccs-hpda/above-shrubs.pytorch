@@ -1,5 +1,5 @@
 # working directory to store outputs
-work_dir: /explore/nobackup/projects/ilab/projects/ABoVE-Shrubs/development/chm_fm_models_testing
+work_dir: /explore/nobackup/projects/ilab/projects/ABoVE-Shrubs/development/chm_fm_models_testing/scalemae-test-loss
 
 #experiment_name: cnn-chm-above
 #experiment_type: cnn-chm-v1
@@ -18,8 +18,8 @@ test_data_dir: /explore/nobackup/people/mmacande/srlite/chm_model/20230515b_chm/
 test_label_dir: /explore/nobackup/people/mmacande/srlite/chm_model/20230515b_chm/test_labels
 test_tiles_dir: '${work_dir}/test_data'
 
-#dtm_path: /explore/nobackup/projects/dem/AK_IFSAR/alaska_ifsar_dtm_20221222.tif
-#dsm_path: /explore/nobackup/projects/dem/AK_IFSAR/alaska_ifsar_dsm_20221222.tif
+dtm_path: /explore/nobackup/projects/dem/AK_IFSAR/alaska_ifsar_dtm_20221222.tif
+dsm_path: /explore/nobackup/projects/dem/AK_IFSAR/alaska_ifsar_dsm_20221222.tif
 
 batch_size: 512
 
@@ -32,19 +32,41 @@ batch_size: 512
 #mixed_precision: False
 #xla: False
 
-#input_bands:
-#  - B
-#  - G
-#  - R
-#  - NIR
-#  - DTM
+input_bands:
+  - B
+  - G
+  - R
+  - NIR
+  - CB
+  - Yellow
+  - NIR2
+  - RE
 
-#output_bands:
-#  - B
-#  - G
-#  - R
-#  - NIR
-#  - DTM
+output_bands:
+  - B
+  - G
+  - R
+  - NIR
+  - DTM
+
+inference_regex_list:
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV03_20200704_M1BS_104001005EADB900-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV03_20200704_M1BS_104001005EADB900-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20200722_M1BS_10300100AB1FD100-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV03_20190822_M1BS_104001005054F700-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV03_20170719_M1BS_104001002F7A2E00-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20160817_M1BS_103001005B484100-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20190820_M1BS_1030010099BF2F00-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20110727_M1BS_103001000D914900-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20190820_M1BS_10300100968FB300-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20190820_M1BS_10300100954DE000-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20120721_M1BS_103001001AB23900-sr-02m.tif'
+  #- '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite_ak_2024/*_sr_02m.tif'
+  #- '/explore/nobackup/projects/ilab/data/srlite/products/srlite-0.9.15-10282022-qa/10282022-all/Siberia/*.tif'
+  #- '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/footprints/fullpaths_srlite_chm_priority.csv'
+#inference_save_dir: /explore/nobackup/projects/above/misc/ABoVE_Shrubs/development/chm/v2/scalemae-test-loss
+inference_save_dir: /explore/nobackup/projects/above/misc/ABoVE_Shrubs/development/chm/v2/dinov2_rs/2.2.3
+experiment_type: 'chm'
 
 #substract_labels: True
 #normalize: 1.0
@@ -97,6 +119,7 @@ batch_size: 512
 #pred_batch_size: 128
 #inference_overlap: 0.50
 #inference_treshold: 0.50
+
 #prediction_dtype: float32
 #prediction_nodata: -9999
 
