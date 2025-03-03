@@ -2,7 +2,7 @@ import warnings
 import torch.nn as nn
 import torch.nn.functional as F
 from above_shrubs.encoders.base import Encoder
-from torchgeo.trainers import PixelwiseRegressionTask
+
 
 class Decoder(nn.Module):
     """Base class for decoders."""
@@ -24,6 +24,7 @@ class Decoder(nn.Module):
         self.encoder = encoder
         self.num_classes = num_classes
         self.finetune = finetune
+
 
 def resize(input,
            size=None,
