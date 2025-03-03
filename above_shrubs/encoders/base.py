@@ -4,7 +4,6 @@ import urllib.request
 from logging import Logger
 from pathlib import Path
 
-import gdown
 import torch
 import torch.nn as nn
 import tqdm
@@ -186,7 +185,7 @@ class Encoder(nn.Module):
             pbar = DownloadProgressBar(f"Downloading {self.encoder_weights}")
 
             if self.download_url.startswith("https://drive.google.com/"):
-                gdown.download(self.download_url, self.encoder_weights)
+                print('Ignoring GDOWN for now.')
             else:
                 try:
                     urllib.request.urlretrieve(
