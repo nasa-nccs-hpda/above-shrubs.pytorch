@@ -75,6 +75,9 @@ class Config:
     # the lower, the slower the training
     learning_rate: Optional[float] = 0.1
 
+    # Scheduler for lowering learning rate
+    lr_scheduler: Optional[str] = None
+
     # Model improvement epochs - if model doesnt improve after
     #  this value, then stop training
     patience: Optional[int] = 10
