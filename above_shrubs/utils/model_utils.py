@@ -1,10 +1,13 @@
 import os
+import lightning
 import segmentation_models_pytorch as smp
 from torchgeo.models import FCN, get_weight
 from torchvision.models._api import WeightsEnum
 from torchgeo.trainers import PixelwiseRegressionTask
 from torchgeo.trainers.utils import extract_backbone
 from above_shrubs.decoders.meta_rpt_head import MetaDinoV2RS
+from torch.optim import AdamW
+from torch.optim.lr_scheduler import CosineAnnealingLR, LambdaLR
 
 
 class CHMPixelwiseRegressionTask(PixelwiseRegressionTask):
@@ -77,3 +80,25 @@ class CHMPixelwiseRegressionTask(PixelwiseRegressionTask):
         ]:
             for param in self.model.decoder.parameters():
                 param.requires_grad = False
+
+    def configure_optimizers(
+        self,
+    ) -> 'lightning.pytorch.utilities.types.OptimizerLRScheduler':
+        """Initialize the optimizer and learning rate scheduler.
+
+        Returns:
+            Optimizer and learning rate scheduler.
+        """
+        optimizer = AdamW(self.parameters(), lr=self.hparams['lr'])
+        # scheduler = ReduceLROnPlateau(optimizer, patience=self.hparams['patience'])
+
+        def warmup(epoch):
+            if epoch < 5:  # Warmup for first 5 epochs
+                return epoch / 5
+            return 1
+
+        scheduler = LambdaLR(optimizer, warmup)
+        return {
+            'optimizer': optimizer,
+            'lr_scheduler': {'scheduler': scheduler, 'monitor': self.monitor},
+        }
