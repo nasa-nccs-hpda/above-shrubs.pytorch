@@ -444,7 +444,7 @@ class CHMPipeline(BasePipeline):
 
                 # TODO: This needs some comments explaining what each of these is doing
                 # Sliding window prediction
-                #prediction = regression_inference.sliding_window_tiler(
+                # prediction = regression_inference.sliding_window_tiler(
                 #    xraster=temporary_tif,
                 #    model=task.model, # PMM edit model --> task.model
                 #    n_classes=self.conf.n_classes,
@@ -455,7 +455,7 @@ class CHMPipeline(BasePipeline):
                 #    std=self.conf.preprocessing_std_vector,
                 #    normalize=self.conf.normalize,
                 #    window=self.conf.window_algorithm
-                #) * self.conf.normalize_label
+                # ) * self.conf.normalize_label
                 prediction = sliding_window_tiler_multiclass(
                     image,
                     model=task.model,
