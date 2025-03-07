@@ -6,6 +6,7 @@ from torchvision.models._api import WeightsEnum
 from torchgeo.trainers import PixelwiseRegressionTask
 from torchgeo.trainers.utils import extract_backbone
 from above_shrubs.decoders.meta_rpt_head import MetaDinoV2RS
+from above_shrubs.decoders.meta_fcn_head import MetaDinoV2RSFCN
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR, LambdaLR
 
@@ -43,6 +44,12 @@ class CHMPixelwiseRegressionTask(PixelwiseRegressionTask):
                 huge=True,
                 input_bands=self.hparams['in_channels']
             )
+        elif self.hparams['model'] == 'dinov2_fcn_rs':
+            self.model = MetaDinoV2RSFCN(
+                pretrained=weights,
+                huge=True,
+                input_bands=self.hparams['in_channels']
+            )
         else:
             raise ValueError(
                 f"Model type '{self.hparams['model']}' is not valid. " +
@@ -52,7 +59,8 @@ class CHMPixelwiseRegressionTask(PixelwiseRegressionTask):
 
         if self.hparams['model'] != 'fcn' \
                 and self.hparams['model'] != 'dinov2_rs' \
-                and self.hparams['model'] != 'dinov2_rs_rpt':
+                and self.hparams['model'] != 'dinov2_rs_rpt' \
+                and self.hparams['model'] != 'dinov2_fcn_rs':
             if weights and weights is not True:
                 if isinstance(weights, WeightsEnum):
                     state_dict = weights.get_state_dict(progress=True)
