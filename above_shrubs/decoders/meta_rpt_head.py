@@ -6,6 +6,7 @@
 import os
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import segmentation_models_pytorch as smp
 
 from typing import Any
@@ -186,5 +187,3 @@ class MetaDinoV2RS(nn.Module):
         x = self.backbone(x)
         x = self.decode_head(x)
         return x
-
-
