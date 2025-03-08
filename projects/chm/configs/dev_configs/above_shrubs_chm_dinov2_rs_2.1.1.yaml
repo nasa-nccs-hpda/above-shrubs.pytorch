@@ -1,11 +1,11 @@
-#sbatch --mem-per-cpu=10240 -G4 -c40 -t05-00:00:00 -J dv2-4.0.0 --wrap="singularity exec --env PYTHONPATH=/home/pmontesa/code/above-shrubs.pytorch --nv -B $NOBACKUP,/explore/nobackup/people,/explore/nobackup/projects /explore/nobackup/projects/ilab/containers/above-shrubs-pytorch.2025.01 python /home/pmontesa/code/above-shrubs.pytorch/above_shrubs/view/chm_pipeline_cli.py -c /home/pmontesa/code/above-shrubs.pytorch/projects/chm/configs/dev_configs/above_shrubs_chm_dinov2_rs_4.0.0.yaml -s train"
+#sbatch --mem-per-cpu=10240 -G4 -c40 -t05-00:00:00 -J dv2211 --wrap="singularity exec --env PYTHONPATH=/home/pmontesa/code/above-shrubs.pytorch --nv -B $NOBACKUP,/explore/nobackup/people,/explore/nobackup/projects /explore/nobackup/projects/ilab/containers/above-shrubs-pytorch.2025.01 python /home/pmontesa/code/above-shrubs.pytorch/above_shrubs/view/chm_pipeline_cli.py -c /home/pmontesa/code/above-shrubs.pytorch/projects/chm/configs/dev_configs/above_shrubs_chm_dinov2_rs_2.1.1.yaml -s train"
 
 project_name: above_shrubs
 experiment_type: 'chm'
 experiment_name: '${project_name}-${experiment_type}'
 backbone_name: dinov2_rs
 decoder_name: 'dinov2_rs_rpt'
-version: 4.0.0
+version: 2.1.1
 main_dir: /explore/nobackup/projects/above/misc/ABoVE_Shrubs/development
 
 #------------------------------------- Setup -------------------------------------#
@@ -30,9 +30,9 @@ num_train_images: 10000
 
 batch_size: 128
 loss_func: 'mae'
-learning_rate: 0.05
-weights: 'None' # No weights! training from scratch '/explore/nobackup/projects/ilab/data/MetaCHM/saved_checkpoints/SSLhuge_satellite.pth'
-patience: 5
+learning_rate: 1e-3
+weights: '/explore/nobackup/projects/ilab/data/MetaCHM/saved_checkpoints/SSLhuge_satellite.pth'
+patience: 10
 
 metadata_filename: '${main_dir}/models/mean-std-values.csv'
 model_dir: '${main_dir}/models/${backbone_name}/${version}'
