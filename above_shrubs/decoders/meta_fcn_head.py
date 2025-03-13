@@ -15,31 +15,39 @@ class SimpleFCNDecoder(nn.Module):
         self.conv2 = nn.Conv2d(512, 256, kernel_size=3, padding=1)
         self.conv3 = nn.Conv2d(256, 128, kernel_size=3, padding=1)
         self.conv4 = nn.Conv2d(128, 64, kernel_size=3, padding=1)
-        self.conv5 = nn.Conv2d(64, 1, kernel_size=1)  # 1 output channel for regression
+        self.conv5 = nn.Conv2d(
+            64, 1, kernel_size=1)  # 1 output channel for regression
 
     def forward(self, features):
         """
         Features come from SSLVisionTransformer (list of feature maps).
         We only use the last feature map (highest resolution).
         """
-        x = features[-1]  # Use the last feature map from the transformer
+        x = features[-1][0]  # Use the last feature map from the transformer
 
         x = F.relu(self.conv1(x))
-        x = F.interpolate(x, scale_factor=2, mode="bilinear", align_corners=False)
+        x = F.interpolate(
+            x, scale_factor=2, mode="bilinear", align_corners=False)
 
         x = F.relu(self.conv2(x))
-        x = F.interpolate(x, scale_factor=2, mode="bilinear", align_corners=False)
+        x = F.interpolate(
+            x, scale_factor=2, mode="bilinear", align_corners=False)
 
         x = F.relu(self.conv3(x))
-        x = F.interpolate(x, scale_factor=2, mode="bilinear", align_corners=False)
+        x = F.interpolate(
+            x, scale_factor=2, mode="bilinear", align_corners=False)
 
         x = F.relu(self.conv4(x))
-        x = F.interpolate(x, scale_factor=2, mode="bilinear", align_corners=False)
+        x = F.interpolate(
+            x, scale_factor=2, mode="bilinear", align_corners=False)
 
         x = self.conv5(x)  # Final linear layer (no activation)
-        x = torch.relu(x) * self.output_range  # Ensure output is in range [0, 30]
+
+        # Ensure output is in range [0, 30]
+        x = torch.relu(x) * self.output_range
 
         return x
+
 
 class MetaDinoV2RSFCN(nn.Module):
     def __init__(self, pretrained=None, huge=False, input_bands=3):
