@@ -5,6 +5,7 @@ import numpy as np
 import rioxarray as rxr
 from typing import Any
 from pathlib import Path
+from typing import List
 from torchgeo.datasets import NonGeoDataset
 
 __status__ = "Production"
@@ -25,7 +26,8 @@ class CHMDataset(NonGeoDataset):
         mask_paths: list,
         transform=None,
         transform_labels=None,
-        n_images: int = -1
+        n_images: int = -1,
+        band_indices: List[int] = []
     ) -> None:
         super().__init__()
 
@@ -60,6 +62,7 @@ class CHMDataset(NonGeoDataset):
 
         # rgb indices for some plots
         self.rgb_indices = [0, 1, 2]
+        self.band_indices = band_indices
 
     def __len__(self) -> int:
         return len(self.image_list)
@@ -77,12 +80,21 @@ class CHMDataset(NonGeoDataset):
         return {'image': image, 'mask': label}
 
     def _load_file(self, path: Path):
+
+        # loading the file
         if Path(path).suffix == '.npy':
             data = np.load(path)
         elif Path(path).suffix == '.tif':
             data = rxr.open_rasterio(path).to_numpy()
         else:
             sys.exit('Non-recognized dataset format. Expects npy or tif.')
+
+        # select bands if needed
+        if len(self.band_indices) > 0:
+
+            # select particular bands from the training tile
+            data = data[self.band_indices]
+
         return data
 
     def get_filenames(self, path):

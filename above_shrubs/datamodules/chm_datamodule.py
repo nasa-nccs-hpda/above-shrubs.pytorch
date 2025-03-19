@@ -1,5 +1,5 @@
 import torch
-from typing import Any
+from typing import Any, List
 from torch.utils.data import DataLoader
 from torchgeo.datamodules import NonGeoDataModule
 from above_shrubs.datasets.chm_dataset import CHMDataset
@@ -22,6 +22,7 @@ class CHMDataModule(NonGeoDataModule):
                 transform_labels=None,
                 n_images: int = -1,
                 prefetch_factor: int = 4,
+                band_indices: List[int] = [],
                 **kwargs: Any
             ) -> None:
 
@@ -43,6 +44,7 @@ class CHMDataModule(NonGeoDataModule):
         self.transform_labels = transform_labels
         self.n_images = n_images
         self.prefetch_factor = prefetch_factor
+        self.band_indices = band_indices
 
     def setup(self, stage: str = None) -> None:
         if stage in ["fit"] or stage is None:
@@ -51,7 +53,8 @@ class CHMDataModule(NonGeoDataModule):
                 self.train_label_dir,
                 self.transform_images,
                 self.transform_labels,
-                self.n_images
+                self.n_images,
+                self.band_indices
             )
         if stage in ["fit", "validate"]:
             self.val_dataset = self.dataset_class(
@@ -59,7 +62,8 @@ class CHMDataModule(NonGeoDataModule):
                 self.test_label_dir,
                 self.transform_images,
                 self.transform_labels,
-                self.n_images
+                self.n_images,
+                self.band_indices
             )
         if stage in ["test"]:
             self.test_dataset = self.dataset_class(
@@ -67,7 +71,8 @@ class CHMDataModule(NonGeoDataModule):
                 self.test_label_dir,
                 self.transform_images,
                 self.transform_labels,
-                self.n_images
+                self.n_images,
+                self.band_indices
             )
 
     def prepare_data(self):
