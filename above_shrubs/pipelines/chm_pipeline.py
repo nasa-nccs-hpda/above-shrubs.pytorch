@@ -268,7 +268,8 @@ class CHMPipeline(BasePipeline):
             num_workers=multiprocessing.cpu_count(),
             transform_images=transform_images,
             transform_labels=transform_labels,
-            n_images=self.conf.num_train_images
+            n_images=self.conf.num_train_images,
+            band_indices=self.conf.band_indices
         )
         logging.info('Loaded data module.')
 
