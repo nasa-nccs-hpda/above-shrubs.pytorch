@@ -119,6 +119,10 @@ class Config:
         default_factory=lambda: [
             "Blue", "Green", "Red", "NIR1", "HOM1", "HOM2"])
 
+    band_indices: Optional[List[str]] = field(
+        default_factory=lambda: [0, 1, 2, 3]
+    )
+
     # filenames storing DTM and DSM
     dtm_path: Optional[str] = None
     dsm_path: Optional[str] = None
