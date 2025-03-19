@@ -89,6 +89,8 @@ class CHMDataset(NonGeoDataset):
         else:
             sys.exit('Non-recognized dataset format. Expects npy or tif.')
 
+        # print(self.band_indices)
+
         # select bands if needed
         if len(self.band_indices) > 0:
 

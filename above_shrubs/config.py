@@ -119,7 +119,7 @@ class Config:
         default_factory=lambda: [
             "Blue", "Green", "Red", "NIR1", "HOM1", "HOM2"])
 
-    band_indices: Optional[List[str]] = field(
+    band_indices: Optional[List[int]] = field(
         default_factory=lambda: [0, 1, 2, 3]
     )
 
