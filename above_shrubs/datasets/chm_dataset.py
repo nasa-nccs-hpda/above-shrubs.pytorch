@@ -68,8 +68,17 @@ class CHMDataset(NonGeoDataset):
         return len(self.image_list)
 
     def __getitem__(self, index: int) -> dict[str, Any]:
-        image = torch.from_numpy(self._load_file(
-            self.image_list[index]).astype(np.float32))
+
+        image = self._load_file(self.image_list[index])
+
+        # select bands if needed
+        if len(self.band_indices) > 0:
+
+            # select particular bands from the training tile
+            image = image[self.band_indices]
+
+        image = torch.from_numpy(
+            image.astype(np.float32))
         label = torch.from_numpy(self._load_file(
             self.mask_list[index]).astype(np.float32))
 
@@ -88,15 +97,6 @@ class CHMDataset(NonGeoDataset):
             data = rxr.open_rasterio(path).to_numpy()
         else:
             sys.exit('Non-recognized dataset format. Expects npy or tif.')
-
-        # print(self.band_indices)
-
-        # select bands if needed
-        if len(self.band_indices) > 0:
-
-            # select particular bands from the training tile
-            data = data[self.band_indices]
-
         return data
 
     def get_filenames(self, path):
