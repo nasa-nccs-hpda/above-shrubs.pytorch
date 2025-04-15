@@ -648,13 +648,10 @@ class CHMPipeline(BasePipeline):
             ])
         else:
             images_transform = transforms.Compose([
-                transforms.Resize((224, 224)),
                 transforms.Normalize(
                     mean=self.conf.preprocessing_mean_vector,
                     std=self.conf.preprocessing_std_vector)  # Normalize
             ])
             # Ensure compatibility with MetaDinoV2RS
-            labels_transform = transforms.Compose([
-                transforms.Resize((224, 224)),
-            ])
+            labels_transform = None
         return images_transform, labels_transform
