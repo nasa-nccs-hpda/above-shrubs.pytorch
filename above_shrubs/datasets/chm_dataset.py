@@ -82,8 +82,10 @@ class CHMDataset(NonGeoDataset):
         label = torch.from_numpy(self._load_file(
             self.mask_list[index]).astype(np.float32))
 
-        if self.transform:
+        if self.transform is not None:
             image = self.transform(image)
+        
+        if self.transform_labels is not None:
             label = self.transform_labels(label)
 
         return {'image': image, 'mask': label}
