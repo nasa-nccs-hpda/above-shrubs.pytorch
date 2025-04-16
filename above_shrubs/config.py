@@ -173,7 +173,7 @@ class CHMConfig(Config):
     loss_func: Optional[str] = 'mse'  # 'mae'
 
     # temporary testing transforms
-    transforms: Optional[list] = field(
+    transforms_list: Optional[list] = field(
         default_factory=lambda: [])
 
 
