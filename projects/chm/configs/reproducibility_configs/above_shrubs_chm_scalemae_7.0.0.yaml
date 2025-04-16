@@ -5,8 +5,11 @@ experiment_type: 'chm'
 experiment_name: '${project_name}-${experiment_type}'
 backbone_name: scalemae # after repo pull to test new transform in preprocessing
 decoder_name: 'fcn'
-version: 6.0.3
+version: 7.0.0
 main_dir: /explore/nobackup/projects/ilab/scratch/jacaraba/above-shrubs
+
+# transforms:
+
 
 #------------------------------------- Setup -------------------------------------#
 
@@ -26,13 +29,13 @@ test_tiles_dir: '/explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm
 ### - this was implemented after a repo pull to enable gradual learning
 # --- enabling warmup learning rate scheduler to lower the learning rate as a plateau in validation loss is found
 # -1 means use all images, use low number for quick model testing
-num_train_images: 1000
+num_train_images: 20000
 
 batch_size: 128
 loss_func: 'mae'
-learning_rate: 1e-5
+learning_rate: 1e-4
 weights: None
-patience: 10
+patience: 5
 
 metadata_filename: '${main_dir}/models/mean-std-values.csv'
 model_dir: '${main_dir}/models/${backbone_name}/${version}'
