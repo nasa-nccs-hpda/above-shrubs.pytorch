@@ -180,14 +180,20 @@ class CHMConfig(Config):
 @dataclass
 class LandCoverConfig(Config):
 
+    # csv path to read data from 
+    csv_path: str = 'input.csv'
+
+    # number of classes
+    num_classes: int = 10
+
     # directory that store train data
-    train_data_dir: Optional[str] = None
-    train_label_dir: Optional[str] = None
+    #train_data_dir: Optional[str] = None
+    #train_label_dir: Optional[str] = None
 
     # directory that stores test data
-    test_dir: Optional[str] = None
-    test_data_dir: Optional[str] = None
-    test_label_dir: Optional[str] = None
+    #test_dir: Optional[str] = None
+    #test_data_dir: Optional[str] = None
+    #test_label_dir: Optional[str] = None
 
     # filenames storing DTM and DSM
     dtm_path: Optional[str] = None
@@ -205,3 +211,9 @@ class LandCoverConfig(Config):
 
     # loss function
     loss_func: Optional[str] = 'dice'
+
+    # nodata threshold
+    nodata_threshold: Optional[float] = 0.0
+
+    # number of works for training
+    num_workers: Optional[int] = 40

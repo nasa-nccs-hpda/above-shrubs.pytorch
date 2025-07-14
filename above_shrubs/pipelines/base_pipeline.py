@@ -6,6 +6,7 @@ import omegaconf
 import numpy as np
 import pandas as pd
 import rioxarray as rxr
+import pytorch_lightning as pl
 
 from glob import glob
 from pathlib import Path
@@ -135,6 +136,7 @@ class BasePipeline(object):
         """
         np.random.seed(int(seed))
         torch.manual_seed(int(seed))
+        pl.seed_everything(int(seed))
         if HAS_GPU:
             try:
                 cp.random.seed(int(seed))

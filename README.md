@@ -87,10 +87,16 @@ sbatch --mem-per-cpu=10240 -G4 -c40 -t05-00:00:00 -J dinov2-v3.0.0 --wrap="singu
 
 ## Land Cover Segmentation
 
-To test the dataloader
+To test the dataloader:
 
 ```bash
 singularity exec --env PYTHONPATH="/explore/nobackup/people/jacaraba/development/above-shrubs.pytorch" --nv -B $NOBACKUP,/explore/nobackup/people,/explore/nobackup/projects /lscratch/jacaraba/container/above-shrubs.pytorch python /explore/nobackup/people/jacaraba/development/above-shrubs.pytorch/above_shrubs/datamodules/landcover_datamodule.py
+```
+
+To train a model:
+
+```bash
+singularity exec --env PYTHONPATH="/explore/nobackup/people/jacaraba/development/above-shrubs.pytorch" --nv -B $NOBACKUP,/explore/nobackup/people,/explore/nobackup/projects /lscratch/jacaraba/container/above-shrubs.pytorch python /explore/nobackup/people/jacaraba/development/above-shrubs.pytorch/above_shrubs/view/landcover_pipeline_cli.py -c /explore/nobackup/people/jacaraba/development/above-shrubs.pytorch/projects/landcover/configs/landcover_v2.0.yaml
 ```
 
 ## Debugging
