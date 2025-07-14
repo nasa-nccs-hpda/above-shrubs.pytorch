@@ -1,0 +1,99 @@
+#sbatch --mem-per-cpu=10240 -G4 -c40 -t00-08:00:00 -J sm603 --wrap="singularity exec --env PYTHONPATH=/home/pmontesa/code/above-shrubs.pytorch --nv -B $NOBACKUP,/explore/nobackup/people,/explore/nobackup/projects /explore/nobackup/projects/ilab/containers/above-shrubs-pytorch.2025.01 python /home/pmontesa/code/above-shrubs.pytorch/above_shrubs/view/chm_pipeline_cli.py -c /home/pmontesa/ABoVE_Shrubs/development/configs/above_shrubs_chm_scalemae_6.0..yaml -3s train"
+
+project_name: above_shrubs
+experiment_type: 'chm'
+experiment_name: '${project_name}-${experiment_type}'
+backbone_name: scalemae # after repo pull to test new transform in preprocessing
+decoder_name: 'fcn'
+version: 7.0.0
+main_dir: /explore/nobackup/projects/ilab/scratch/jacaraba/above-shrubs
+
+# transforms:
+
+
+#------------------------------------- Setup -------------------------------------#
+
+# Here we go from tif's to .npy's for training
+
+# directory that store train data
+train_data_dir:  /explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/train_merged_nodtm_images
+train_label_dir: /explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/train_merged_chm
+train_tiles_dir:  '/explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/train_merged_nodtm_npy'
+
+# directory that stores test data
+test_data_dir:  /explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/test_merged_nodtm_images
+test_label_dir: /explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/test_merged_chm
+test_tiles_dir: '/explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/test_merged_nodtm_npy'
+
+#------------------------------------- General -------------------------------------#
+### - this was implemented after a repo pull to enable gradual learning
+# --- enabling warmup learning rate scheduler to lower the learning rate as a plateau in validation loss is found
+# -1 means use all images, use low number for quick model testing
+num_train_images: 20000
+
+batch_size: 128
+loss_func: 'mae'
+learning_rate: 1e-4
+weights: None
+patience: 5
+
+metadata_filename: '${main_dir}/models/mean-std-values.csv'
+model_dir: '${main_dir}/models/${backbone_name}/${version}'
+
+callbacks:
+  - "pl.pytorch.callbacks.ModelCheckpoint(monitor='val_loss', dirpath='${model_dir}', save_top_k=1, save_last=True)"
+  - "pl.pytorch.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.00, patience=${patience})"
+
+loggers:
+  - "pl.pytorch.loggers.TensorBoardLogger(save_dir='${model_dir}', name='tensorboard_logs')"
+  - "pl.pytorch.loggers.CSVLogger(save_dir='${model_dir}', name='csv_logs')"
+
+input_bands:
+ - B
+ - G
+ - R
+ - NIR
+ - CB
+ - Yellow
+ - NIR2
+ - RE
+
+output_bands:
+  - B
+  - G
+  - R
+  - NIR
+
+#
+# BUG: Need to fix how cloudmask is handled: TypeError: BasePipeline.get_filenames() got an unexpected keyword argument 'allow_empty'` 
+#
+#cloudmask_path: '/explore/nobackup/projects/ilab/test/vhr-cloudmask/*/*'
+#cloudmask_path: '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/cloudmask/002m'
+#cloudmask_path: None
+
+#
+# BUG: Need to make prediction on an 8-band SRlite work 
+#
+inference_regex_list:
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20200722_M1BS_10300100AB1FD100-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV03_20200704_M1BS_104001005EADB900-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV03_20190822_M1BS_104001005054F700-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV03_20170719_M1BS_104001002F7A2E00-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20160817_M1BS_103001005B484100-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20190820_M1BS_1030010099BF2F00-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20110727_M1BS_103001000D914900-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20190820_M1BS_10300100968FB300-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20190820_M1BS_10300100954DE000-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20120721_M1BS_103001001AB23900-sr-02m.tif'
+  #- '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite_ak_2024/*_sr_02m.tif'
+  #- '/explore/nobackup/projects/ilab/data/srlite/products/srlite-0.9.15-10282022-qa/10282022-all/Siberia/*.tif'
+  #- '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/footprints/fullpaths_srlite_chm_priority.csv'
+  # # 4 band srlite for testing predictions of dinov2 before big fix implemented
+  # - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m_4band/*-sr-02m_4bnd.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20140707_M1BS_103001003288A000-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV02_20160818_M1BS_103001005BA08600-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV03_20160801_M1BS_1040010020227300-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV03_20160817_M1BS_10400100201F1200-sr-02m.tif'
+  - '/explore/nobackup/projects/above/misc/ABoVE_Shrubs/srlite/002m/WV03_20160830_M1BS_10400100211C3B00-sr-02m.tif'
+
+inference_save_dir: '${main_dir}/${experiment_type}/${backbone_name}/${version}'

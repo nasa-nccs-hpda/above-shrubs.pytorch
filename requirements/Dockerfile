@@ -1,5 +1,5 @@
 # Arguments to pass to the image
-ARG VERSION_DATE=24.09
+ARG VERSION_DATE=25.01
 ARG FROM_IMAGE=nvcr.io/nvidia/pytorch
 
 # Import RAPIDS container as the BASE Image (cuda base image)

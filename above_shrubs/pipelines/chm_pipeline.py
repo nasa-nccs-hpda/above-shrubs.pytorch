@@ -256,7 +256,7 @@ class CHMPipeline(BasePipeline):
 
         # Setup transforms
         transform_images, transform_labels = self.get_transforms(
-            self.conf.backbone_name)
+            self.conf.backbone_name, self.conf.transforms_list)
 
         # Load data module
         datamodule = CHMDataModule(
@@ -282,8 +282,22 @@ class CHMPipeline(BasePipeline):
         # Set logger
         loggers = get_loggers(self.conf.loggers)
 
+        """
+        datamodule.setup(stage="fit")
+        train_loader = datamodule.train_dataloader()
+
+        for batch in train_loader:
+            images = batch["image"]
+            for i in range(images.size(0)):
+                tile = images[i]
+                tile_min = tile.min().item()
+                tile_max = tile.max().item()
+                tile_mean = tile.mean().item()
+                tile_std = tile.std().item()
+                print(tile_min, tile_max, tile_mean, tile_std)
+        """
+
         # Create a task to train with
-        # MetaDinoV2RS_Lightning
         task = CHMPixelwiseRegressionTask(
             loss=self.conf.loss_func,
             model=self.conf.decoder_name,  # 'fcn' 'deeplabv3+',
@@ -629,7 +643,11 @@ class CHMPipeline(BasePipeline):
     # -------------------------------------------------------------------------
     # get_transforms
     # -------------------------------------------------------------------------
-    def get_transforms(self, model_name: str):
+    def get_transforms(self, model_name: str, transforms_list: list = []):
+
+        # if no transforms given, return None
+        if len(transforms_list) == 0:
+            return None, None
 
         if model_name == 'dinov2_rs':
             # Setup transforms, currently fixed, will need them to be dynamic

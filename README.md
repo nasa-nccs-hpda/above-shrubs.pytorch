@@ -85,6 +85,14 @@ To turn this into a full slurm submission command so you can get a GPU session:
 sbatch --mem-per-cpu=10240 -G4 -c40 -t05-00:00:00 -J dinov2-v3.0.0 --wrap="singularity exec --env PYTHONPATH=/explore/nobackup/people/jacaraba/development/above-shrubs.pytorch --nv -B $NOBACKUP,/explore/nobackup/people,/explore/nobackup/projects /explore/nobackup/projects/ilab/containers/above-shrubs-pytorch.2025.01 python /explore/nobackup/people/jacaraba/development/above-shrubs.pytorch/above_shrubs/view/chm_pipeline_cli.py -c /explore/nobackup/projects/above/misc/ABoVE_Shrubs/development/configs/above_shrubs_chm_dinov2_rs.yaml -s train"
 ```
 
+## Land Cover Segmentation
+
+To test the dataloader
+
+```bash
+singularity exec --env PYTHONPATH="/explore/nobackup/people/jacaraba/development/above-shrubs.pytorch" --nv -B $NOBACKUP,/explore/nobackup/people,/explore/nobackup/projects /lscratch/jacaraba/container/above-shrubs.pytorch python /explore/nobackup/people/jacaraba/development/above-shrubs.pytorch/above_shrubs/datamodules/landcover_datamodule.py
+```
+
 ## Debugging
 
 For developing and debugging you can always shell into the node and work from there. To get
@@ -92,6 +100,19 @@ a shell session inside the node:
 
 ```bash
 singularity shell --env PYTHONPATH="/explore/nobackup/people/jacaraba/development/above-shrubs.pytorch" --nv -B $NOBACKUP,/explore/nobackup/people,/explore/nobackup/projects /explore/nobackup/projects/ilab/containers/above-shrubs-pytorch.2025.01
+```
+
+## Side Notes
+
+- Corrupted files?
+
+```bash
+INFO:rasterio._err:GDAL signalled an error: err_no=1, msg='LZWDecode:Wrong length of decoded string: data probably corrupted at scanline 4501'
+INFO:rasterio._err:GDAL signalled an error: err_no=1, msg='TIFFReadEncodedStrip() failed.'
+INFO:rasterio._err:GDAL signalled an error: err_no=1, msg='WV02_20110818_M1BS_103001000C94F200-sr-02m-jj-square.tif, band 1: IReadBlock failed at X offset 0, Y offset 4501: TIFFReadEncodedStrip() failed.'
+INFO:rasterio._err:GDAL signalled an error: err_no=1, msg='LZWDecode:Wrong length of decoded string: data probably corrupted at scanline 628'
+INFO:rasterio._err:GDAL signalled an error: err_no=1, msg='TIFFReadEncodedStrip() failed.'
+INFO:rasterio._err:GDAL signalled an error: err_no=1, msg='WV02_20110818_M1BS_103001000C94F200-sr-02m-jj-square.tif, band 1: IReadBlock failed at X offset 0, Y offset 628: TIFFReadEncodedStrip() failed.'
 ```
 
 ## Authors

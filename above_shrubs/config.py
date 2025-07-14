@@ -172,6 +172,10 @@ class CHMConfig(Config):
     # loss function
     loss_func: Optional[str] = 'mse'  # 'mae'
 
+    # temporary testing transforms
+    transforms_list: Optional[list] = field(
+        default_factory=lambda: [])
+
 
 @dataclass
 class LandCoverConfig(Config):
