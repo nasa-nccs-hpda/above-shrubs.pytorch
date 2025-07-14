@@ -50,6 +50,10 @@ RUN pip --no-cache-dir install omegaconf \
     gdown \
     GDAL==`ogrinfo --version | grep -Eo '[0-9]\.[0-9]\.[0-9]+'`
 
+# Temporary addition while NVIDIA containers support numpy >= 2
+RUN pip install --force-reinstall "numpy<2"
+
+
 
 HEALTHCHECK NONE
 ENTRYPOINT []
