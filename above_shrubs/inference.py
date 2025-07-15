@@ -75,6 +75,7 @@ def sliding_window_tiler_multiclass(
 
         with torch.no_grad():
             y_batch = model(input_batch_tensor)
+            print(y_batch.shape)
         y_batch = y_batch.transpose(1, -1).cpu().numpy()
         merger.add_batch(batch_id, batch_size, y_batch)
 

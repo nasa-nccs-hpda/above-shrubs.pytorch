@@ -1,6 +1,7 @@
 import torch
-import pytorch_lightning as pl
-from torchgeo.datamodules import NonGeoDataModule
+import lightning as pl
+# from torchgeo.datamodules import NonGeoDataModule
+from lightning.pytorch import LightningDataModule
 from above_shrubs.utils.transform_utils import basic_augmentations
 from above_shrubs.datasets.landcover_dataset import LandCoverSegmentationDataset
 
@@ -14,6 +15,7 @@ class LandCoverSegmentationDataModule(pl.LightningDataModule):
         num_workers: int = 4,
         nodata_value: float = 0,
         nodata_threshold: float = 0.5,
+        num_classes: int = 10,
         train_transforms=None,
         val_transforms=None,
     ):
@@ -24,6 +26,7 @@ class LandCoverSegmentationDataModule(pl.LightningDataModule):
         self.num_workers = num_workers
         self.nodata_value = nodata_value
         self.nodata_threshold = nodata_threshold
+        self.num_classes = num_classes
         self.train_transforms = train_transforms
         self.val_transforms = val_transforms
 
@@ -33,18 +36,21 @@ class LandCoverSegmentationDataModule(pl.LightningDataModule):
             tile_size=self.tile_size,
             transforms=self.train_transforms,
             nodata_threshold=self.nodata_threshold,
+            num_classes=self.num_classes
         )
         self.val_dataset = LandCoverSegmentationDataset(
             csv_path=self.csv_path,
             tile_size=self.tile_size,
             transforms=self.val_transforms,
             nodata_threshold=self.nodata_threshold,
+            num_classes=self.num_classes
         )
         self.test_dataset = LandCoverSegmentationDataset(
             csv_path=self.csv_path,
             tile_size=self.tile_size,
             transforms=None,
             nodata_threshold=self.nodata_threshold,
+            num_classes=self.num_classes
         )
 
     def train_dataloader(self):

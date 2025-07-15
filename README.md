@@ -87,6 +87,21 @@ sbatch --mem-per-cpu=10240 -G4 -c40 -t05-00:00:00 -J dinov2-v3.0.0 --wrap="singu
 
 ## Land Cover Segmentation
 
+Classes:
+
+```bash
+0 - moist tundra
+1 - low shrub
+2 - tall shrub
+3 - barrens
+4 - lake water
+5 - riverine/ocean water
+6 - spruce
+7 - cloud shadow
+8 - snow
+9 - marsh/wet meadow
+```
+
 To test the dataloader:
 
 ```bash

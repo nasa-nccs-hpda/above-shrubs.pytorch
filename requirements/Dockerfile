@@ -48,7 +48,8 @@ RUN pip --no-cache-dir install omegaconf \
     segmentation-models-pytorch \
     pygeotools \
     gdown \
-    GDAL==`ogrinfo --version | grep -Eo '[0-9]\.[0-9]\.[0-9]+'`
+    GDAL==`ogrinfo --version | grep -Eo '[0-9]\.[0-9]\.[0-9]+'` \
+    terratorch
 
 # Temporary addition while NVIDIA containers support numpy >= 2
 RUN pip install --force-reinstall "numpy<2"
