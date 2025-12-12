@@ -1,4 +1,5 @@
 import os
+import torch
 import lightning
 import segmentation_models_pytorch as smp
 from torchgeo.models import FCN, get_weight
@@ -10,6 +11,7 @@ from above_shrubs.decoders.meta_fcn_head import MetaDinoV2RSFCN
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR, LambdaLR
 
+from above_shrubs.decoders.custom_dpt_head import DINOv3DepthHead
 
 class CHMPixelwiseRegressionTask(PixelwiseRegressionTask):
 
@@ -110,3 +112,52 @@ class CHMPixelwiseRegressionTask(PixelwiseRegressionTask):
             'optimizer': optimizer,
             'lr_scheduler': {'scheduler': scheduler, 'monitor': self.monitor},
         }
+
+
+    def load_flexible_model(checkpoint_path, device='cuda', input_bands='nrg'):
+        """Load a model checkpoint regardless of which model type it is"""
+        
+        print(f"Loading model from: {checkpoint_path}")
+        
+        # Load checkpoint to check model type
+        checkpoint = torch.load(checkpoint_path, map_location='cpu')
+        model_config = checkpoint['model_config']  # This line was missing!
+        
+        print(f"Loading {model_config['description']}")
+        print(f"  Model name: {model_config['model_name']}")
+        print(f"  Embedding dim: {model_config['embed_dim']}")
+        print(f"  Total tokens: {model_config['total_tokens']}")
+    
+        # Create model with correct configuration
+        token = os.getenv("HF_TOKEN")
+        if token is None or token.strip() == "":
+            raise RuntimeError(
+                "Hugging Face token not found.\n"
+                "Please set the environment variable HF_TOKEN "
+                "before loading the model.\n\n"
+                "Example:\n"
+                "  export HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxx\n"
+            )
+        model = DINOv3DepthHead(
+            model_name=model_config['model_name'],
+            freeze_backbone=True,
+            token=token,
+            input_bands=input_bands
+        )
+        
+        # Load weights
+        model.load_state_dict(checkpoint['model_state_dict'])
+        model = model.to(device)
+        model.eval()
+        
+        print(f"✅ Model loaded successfully!")
+        print(f"  Best epoch: {checkpoint['epoch']}")
+        print(f"  Best validation loss: {checkpoint['val_loss']:.4f}")
+        
+        return model, checkpoint
+
+
+if __name__ == "__main__":
+
+    checkpoint_path = "/explore/nobackup/people/mfrost2/projects/dino_boreal_final/best_dinov3_fulldataset_customloss.pth"
+    load_flexible_model(checkpoint_path, device='cuda', input_bands='nrg')
