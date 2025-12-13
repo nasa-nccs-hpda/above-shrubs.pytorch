@@ -1,10 +1,7 @@
 import os
-import logging
-
 import time
-import timm
 import torch
-import torchgeo
+import logging
 import numpy as np
 import pandas as pd
 import multiprocessing
@@ -18,62 +15,24 @@ from above_shrubs.datamodules.chm_datamodule import CHMDataModule
 from above_shrubs.pipelines.base_pipeline import BasePipeline
 
 from typing import List
-import logging
 import rasterio
-import numpy as np
-import pandas as pd
 import xarray as xr
 import rioxarray as rxr
 
-from tqdm import tqdm
 from glob import glob
 from pathlib import Path
-from itertools import repeat
-from omegaconf import OmegaConf
 from pygeotools.lib import iolib, warplib
-from multiprocessing import Pool, cpu_count
-from omegaconf.listconfig import ListConfig
 
 import torchvision.transforms as transforms
-from transformers import AutoConfig, AutoModel
 
-from transformers import Dinov2Model
-
-from above_shrubs.config import CHMConfig as Config
-
-# temporary additions
-
-import os
-import tempfile
-
-import torch
 from lightning.pytorch import Trainer
-from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
-from lightning.pytorch.loggers import TensorBoardLogger
-
-#from torchgeo.datamodules import EuroSAT100DataModule
-#from torchgeo.models import ResNet18_Weights
-from torchgeo.trainers import PixelwiseRegressionTask
-
+from above_shrubs.config import CHMConfig as Config
 from above_shrubs.inference import sliding_window_tiler_multiclass
-import timm
-
-import torch
-import pytorch_lightning as pl
-import torch.nn.functional as F
-from transformers import Dinov2Model, Dinov2PreTrainedModel
-from transformers.modeling_outputs import SemanticSegmenterOutput
-
-import torch
-import torch.nn as nn
-from transformers import AutoModel
-
 from above_shrubs.utils.callbacks_utils import get_callbacks
 from above_shrubs.utils.logger_utils import get_loggers
-
-from pytorch_lightning.strategies import DDPStrategy
-
 from above_shrubs.utils.model_utils import CHMPixelwiseRegressionTask
+from above_shrubs.utils.model_utils import load_flexible_model
+from above_shrubs.inference import complete_dinov3_inference_pipeline_batch
 
 CHUNKS = {'band': 'auto', 'x': 'auto', 'y': 'auto'}
 xp = np
@@ -387,9 +346,6 @@ class CHMPipeline(BasePipeline):
                 key=os.path.getmtime
             )
 
-        from above_shrubs.utils.model_utils import load_flexible_model
-        from above_shrubs.inference import complete_dinov3_inference_pipeline_batch
-
         if self.conf.backbone_name == 'dinov3':
 
             DATA_CONFIG = {
@@ -429,16 +385,16 @@ class CHMPipeline(BasePipeline):
                 'green_max': DATA_CONFIG['green_max'],
                 'img_size': 64,
                 'overlap': 0.50,
-                'batch_size': 128,
+                'batch_size': 512,
                 'visualize_first': True
             }
 
             if DATA_CONFIG['data_name'][-3:] == 'rgb':
-                channels = [2,1,0]
+                channels = [2, 1, 0]
             elif DATA_CONFIG['data_name'][-3:] == 'nrg':
-                channels = [3,2,1]
+                channels = [3, 2, 1]
             else :
-                channels = [0,1,2,3]
+                channels = [0, 1, 2, 3]
             print(channels)
 
             model_for_eval, checkpoint = load_flexible_model(latest_model_file)
