@@ -1,13 +1,12 @@
 import os
 import torch
 import logging
-import numpy as np
-from tqdm import tqdm
-from tiler import Tiler, Merger
 import rasterio
+import numpy as np
+from tiler import Tiler, Merger
 from above_shrubs.processing import standardize_image
 from osgeo import gdal
-import rioxarray as rxr
+
 
 def sliding_window_tiler_multiclass(
     xraster,
@@ -139,12 +138,12 @@ def convert_predictions_to_decameters_int16(predictions):
     
     return converted_predictions
 
-#Compress and Save Tif
+
 def save_predictions_as_geotiff(predictions_decameters, reference_tif_path, output_path):
     """
     Save predictions as a GeoTIFF with matching geotransform and projection from reference,
     with LZW compression, NoData value of -9999, and metadata about units.
-    
+
     Parameters:
     predictions_decameters: numpy array of int16 predictions in decameters
     reference_tif_path: path to the original .tif file for geospatial reference
@@ -154,33 +153,33 @@ def save_predictions_as_geotiff(predictions_decameters, reference_tif_path, outp
     ref_ds = gdal.Open(reference_tif_path)
     if ref_ds is None:
         raise ValueError(f"Could not open reference file: {reference_tif_path}")
-    
+
     # Get geospatial information from reference
     geotransform = ref_ds.GetGeoTransform()
     projection = ref_ds.GetProjection()
-    
+
     # Get dimensions
     height, width = predictions_decameters.shape
-    
+
     # Replace NaN values with -9999 (NoData value)
     output_array = predictions_decameters.copy()
     if np.issubdtype(predictions_decameters.dtype, np.floating):
         output_array = np.where(np.isnan(predictions_decameters), -9999, predictions_decameters)
     output_array = output_array.astype(np.int16)
-    
+
     # Create the output dataset
     driver = gdal.GetDriverByName('GTiff')
-    
+
     # Create dataset with LZW compression
     out_ds = driver.Create(
-        output_path, 
-        width, 
-        height, 
+        output_path,
+        width,
+        height,
         1,  # number of bands
         gdal.GDT_Int16,  # data type
         options=['COMPRESS=LZW', 'TILED=YES']  # LZW compression + tiling for efficiency
     )
-    
+
     if out_ds is None:
         raise ValueError(f"Could not create output file: {output_path}")
     
@@ -278,7 +277,10 @@ def complete_dinov3_inference_pipeline_batch(tif_list, model, data_config, infer
             try:
                 # Step 1: Load and preprocess imagery
                 print("📂 Step 1: Loading and preprocessing imagery...")
-                
+
+                # create lock file
+                open(lock_filename, 'w').close()
+
                 with rasterio.open(tif_path) as src:
                     print(f"   Input shape: {src.shape}")
                     print(f"   Bands: {src.count}")
