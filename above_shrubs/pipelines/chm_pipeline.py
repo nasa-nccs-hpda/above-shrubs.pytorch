@@ -131,16 +131,18 @@ class CHMPipeline(BasePipeline):
         self.seed_everything(self.conf.seed)
 
         # train data directories
-        self.train_data_dir = os.path.join(
-            self.conf.train_tiles_dir, 'images')
-        self.train_label_dir = os.path.join(
-            self.conf.train_tiles_dir, 'labels')
+        if self.conf.train_tiles_dir is not None:
+            self.train_data_dir = os.path.join(
+                self.conf.train_tiles_dir, 'images')
+            self.train_label_dir = os.path.join(
+                self.conf.train_tiles_dir, 'labels')
 
         # test data directories
-        self.test_data_dir = os.path.join(
-            self.conf.test_tiles_dir, 'images')
-        self.test_label_dir = os.path.join(
-            self.conf.test_tiles_dir, 'labels')
+        if self.conf.test_tiles_dir is not None:
+            self.test_data_dir = os.path.join(
+                self.conf.test_tiles_dir, 'images')
+            self.test_label_dir = os.path.join(
+                self.conf.test_tiles_dir, 'labels')
 
     # -------------------------------------------------------------------------
     # setup
@@ -366,6 +368,16 @@ class CHMPipeline(BasePipeline):
 
         logging.info('Starting prediction stage')
 
+        # Gather filenames to predict
+        if len(self.conf.inference_regex_list) > 0:
+            data_filenames = self.get_filenames(
+                self.conf.inference_regex_list)
+        else:
+            logging.info(
+                'Did not find any files. Make sure you set inference_regex_list.')
+            return
+        logging.info(f'{len(data_filenames)} files to predict')
+
         # if the model is not specified, take the last one
         if self.conf.model_filename is not None:
             latest_model_file = self.conf.model_filename
@@ -375,17 +387,73 @@ class CHMPipeline(BasePipeline):
                 key=os.path.getmtime
             )
 
+        from above_shrubs.utils.model_utils import load_flexible_model
+        from above_shrubs.inference import complete_dinov3_inference_pipeline_batch
+
+        if self.conf.backbone_name == 'dinov3':
+
+            DATA_CONFIG = {
+                'data_name': 'chm_npy_dataset',
+                'image_dir': '/explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/train_merged_nodtm_npy/images/',
+                'label_dir': '/explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/train_merged_nodtm_npy/labels/',
+                'stats_path': '/explore/nobackup/people/mfrost2/projects/boreal_chm_dino/numpy_stats/',  
+                'np_stats': 'maxmin_ak_100k_both_nrg_final',  # Or whatever stats you're using
+                'nir_min': 0,    
+                'nir_max': 7142,
+                'red_min': 0,
+                'red_max': 5893,
+                'green_min': 0,
+                'green_max': 5387,
+            }
+
+            # Load means and standard deviations based on config
+            DATA_CONFIG['means'] = [0.34176117, 0.08127703, 0.10034456]
+            DATA_CONFIG['stds'] = [0.13601232, 0.04182002, 0.03420006]
+            DATA_CONFIG['input_bands'] = [3,2,1]
+
+            # Print configuration info
+            #print(f"Dataset: {DATA_CONFIG['data_name']}")
+            print(f"Input bands: {DATA_CONFIG['input_bands']}")
+            print(f"Channel means: {DATA_CONFIG['means']}")
+            print(f"Channel stds: {DATA_CONFIG['stds']}")
+
+            # Add to your DATA_CONFIG or create new INFERENCE_CONFIG
+            INFERENCE_CONFIG = {
+                'blue_min': 0,
+                'blue_max': 5681,
+                'nir_min': DATA_CONFIG['nir_min'],    
+                'nir_max': DATA_CONFIG['nir_max'],
+                'red_min': DATA_CONFIG['red_min'],
+                'red_max': DATA_CONFIG['red_max'],
+                'green_min': DATA_CONFIG['green_min'],
+                'green_max': DATA_CONFIG['green_max'],
+                'img_size': 64,
+                'overlap': 0.50,
+                'batch_size': 128,
+                'visualize_first': True
+            }
+
+            if DATA_CONFIG['data_name'][-3:] == 'rgb':
+                channels = [2,1,0]
+            elif DATA_CONFIG['data_name'][-3:] == 'nrg':
+                channels = [3,2,1]
+            else :
+                channels = [0,1,2,3]
+            print(channels)
+
+            model_for_eval, checkpoint = load_flexible_model(latest_model_file)
+            complete_dinov3_inference_pipeline_batch(
+                data_filenames,
+                model_for_eval,
+                DATA_CONFIG,
+                INFERENCE_CONFIG,
+                self.conf
+            )
+            return
+
         # task to predict with the latest model
         task = CHMPixelwiseRegressionTask.load_from_checkpoint(
             latest_model_file)
-
-        # Gather filenames to predict
-        if len(self.conf.inference_regex_list) > 0:
-            data_filenames = self.get_filenames(
-                self.conf.inference_regex_list)
-        else:
-            data_filenames = self.get_filenames(self.conf.inference_regex)
-        logging.info(f'{len(data_filenames)} files to predict')
 
         # iterate files, create lock file to avoid predicting the same file
         for filename in sorted(data_filenames):

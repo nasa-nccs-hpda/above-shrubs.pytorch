@@ -114,47 +114,47 @@ class CHMPixelwiseRegressionTask(PixelwiseRegressionTask):
         }
 
 
-    def load_flexible_model(checkpoint_path, device='cuda', input_bands='nrg'):
-        """Load a model checkpoint regardless of which model type it is"""
-        
-        print(f"Loading model from: {checkpoint_path}")
-        
-        # Load checkpoint to check model type
-        checkpoint = torch.load(checkpoint_path, map_location='cpu')
-        model_config = checkpoint['model_config']  # This line was missing!
-        
-        print(f"Loading {model_config['description']}")
-        print(f"  Model name: {model_config['model_name']}")
-        print(f"  Embedding dim: {model_config['embed_dim']}")
-        print(f"  Total tokens: {model_config['total_tokens']}")
+def load_flexible_model(checkpoint_path, device='cuda', input_bands='nrg'):
+    """Load a model checkpoint regardless of which model type it is"""
     
-        # Create model with correct configuration
-        token = os.getenv("HF_TOKEN")
-        if token is None or token.strip() == "":
-            raise RuntimeError(
-                "Hugging Face token not found.\n"
-                "Please set the environment variable HF_TOKEN "
-                "before loading the model.\n\n"
-                "Example:\n"
-                "  export HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxx\n"
-            )
-        model = DINOv3DepthHead(
-            model_name=model_config['model_name'],
-            freeze_backbone=True,
-            token=token,
-            input_bands=input_bands
+    print(f"Loading model from: {checkpoint_path}")
+    
+    # Load checkpoint to check model type
+    checkpoint = torch.load(checkpoint_path, map_location='cpu')
+    model_config = checkpoint['model_config']  # This line was missing!
+    
+    print(f"Loading {model_config['description']}")
+    print(f"  Model name: {model_config['model_name']}")
+    print(f"  Embedding dim: {model_config['embed_dim']}")
+    print(f"  Total tokens: {model_config['total_tokens']}")
+
+    # Create model with correct configuration
+    token = os.getenv("HF_TOKEN")
+    if token is None or token.strip() == "":
+        raise RuntimeError(
+            "Hugging Face token not found.\n"
+            "Please set the environment variable HF_TOKEN "
+            "before loading the model.\n\n"
+            "Example:\n"
+            "  export HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxx\n"
         )
-        
-        # Load weights
-        model.load_state_dict(checkpoint['model_state_dict'])
-        model = model.to(device)
-        model.eval()
-        
-        print(f"✅ Model loaded successfully!")
-        print(f"  Best epoch: {checkpoint['epoch']}")
-        print(f"  Best validation loss: {checkpoint['val_loss']:.4f}")
-        
-        return model, checkpoint
+    model = DINOv3DepthHead(
+        model_name=model_config['model_name'],
+        freeze_backbone=True,
+        token=token,
+        input_bands=input_bands
+    )
+    
+    # Load weights
+    model.load_state_dict(checkpoint['model_state_dict'])
+    model = model.to(device)
+    model.eval()
+    
+    print(f"✅ Model loaded successfully!")
+    print(f"  Best epoch: {checkpoint['epoch']}")
+    print(f"  Best validation loss: {checkpoint['val_loss']:.4f}")
+    
+    return model, checkpoint
 
 
 if __name__ == "__main__":
