@@ -333,7 +333,9 @@ class CHMPipeline(BasePipeline):
                 self.conf.inference_regex_list)
         else:
             logging.info(
-                'Did not find any files. Make sure you set inference_regex_list.')
+                'Did not find any files. Make sure you'
+                ' set inference_regex_list.'
+            )
             return
         logging.info(f'{len(data_filenames)} files to predict')
 
@@ -350,11 +352,13 @@ class CHMPipeline(BasePipeline):
 
             DATA_CONFIG = {
                 'data_name': 'chm_npy_dataset',
-                'image_dir': '/explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/train_merged_nodtm_npy/images/',
-                'label_dir': '/explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/train_merged_nodtm_npy/labels/',
-                'stats_path': '/explore/nobackup/people/mfrost2/projects/boreal_chm_dino/numpy_stats/',  
-                'np_stats': 'maxmin_ak_100k_both_nrg_final',  # Or whatever stats you're using
-                'nir_min': 0,    
+                'image_dir': self.conf.train_data_dir,
+                'label_dir': self.conf.train_label_dir,
+                'stats_path':
+                    '/explore/nobackup/people/mfrost2/projects/' +
+                    'boreal_chm_dino/numpy_stats/',
+                'np_stats': 'maxmin_ak_100k_both_nrg_final',
+                'nir_min': 0,
                 'nir_max': 7142,
                 'red_min': 0,
                 'red_max': 5893,
@@ -365,10 +369,10 @@ class CHMPipeline(BasePipeline):
             # Load means and standard deviations based on config
             DATA_CONFIG['means'] = [0.34176117, 0.08127703, 0.10034456]
             DATA_CONFIG['stds'] = [0.13601232, 0.04182002, 0.03420006]
-            DATA_CONFIG['input_bands'] = [3,2,1]
+            DATA_CONFIG['input_bands'] = [3, 2, 1]
 
             # Print configuration info
-            #print(f"Dataset: {DATA_CONFIG['data_name']}")
+            # print(f"Dataset: {DATA_CONFIG['data_name']}")
             print(f"Input bands: {DATA_CONFIG['input_bands']}")
             print(f"Channel means: {DATA_CONFIG['means']}")
             print(f"Channel stds: {DATA_CONFIG['stds']}")
@@ -377,7 +381,7 @@ class CHMPipeline(BasePipeline):
             INFERENCE_CONFIG = {
                 'blue_min': 0,
                 'blue_max': 5681,
-                'nir_min': DATA_CONFIG['nir_min'],    
+                'nir_min': DATA_CONFIG['nir_min'],
                 'nir_max': DATA_CONFIG['nir_max'],
                 'red_min': DATA_CONFIG['red_min'],
                 'red_max': DATA_CONFIG['red_max'],
@@ -393,11 +397,11 @@ class CHMPipeline(BasePipeline):
                 channels = [2, 1, 0]
             elif DATA_CONFIG['data_name'][-3:] == 'nrg':
                 channels = [3, 2, 1]
-            else :
+            else:
                 channels = [0, 1, 2, 3]
             print(channels)
 
-            model_for_eval, checkpoint = load_flexible_model(latest_model_file)
+            model_for_eval, _ = load_flexible_model(latest_model_file)
             complete_dinov3_inference_pipeline_batch(
                 data_filenames,
                 model_for_eval,
@@ -479,9 +483,10 @@ class CHMPipeline(BasePipeline):
                 # Remove no-data values to account for edge effects
                 # TODO: consider replacing this with the new parameters
                 # for better padding.
-                temporary_tif = xr.where(image > -100, image, 2000)
+                _ = xr.where(image > -100, image, 2000)
 
-                # TODO: This needs some comments explaining what each of these is doing
+                # TODO: This needs some comments explaining
+                #  what each of these is doing
                 # Sliding window prediction
                 # prediction = regression_inference.sliding_window_tiler(
                 #    xraster=temporary_tif,
@@ -541,7 +546,9 @@ class CHMPipeline(BasePipeline):
                             self.conf.cloudmask_path,
                             f'{Path(filename).stem.split("-")[0]}*.tif'
                         ),
-                        allow_empty=True # TODO: check this; this was causing an error at one point 
+                        # TODO: check this; this was
+                        # causing an error at one point
+                        allow_empty=True
                     )
 
                     # if we found cloud mask filename, proceed
