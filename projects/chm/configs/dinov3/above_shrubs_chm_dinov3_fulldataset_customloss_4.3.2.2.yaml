@@ -24,8 +24,8 @@ main_dir: /explore/nobackup/projects/ilab/scratch/jacaraba/above-shrubs
 # Here we go from tif's to .npy's for training
 
 # directory that store train data
-#train_data_dir:  /explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/train_merged_nodtm_images
-#train_label_dir: /explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/train_merged_chm
+train_data_dir:  '/explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/train_merged_nodtm_npy/images/'
+train_label_dir: '/explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/train_merged_nodtm_npy/labels/'
 #train_tiles_dir:  '/explore/nobackup/people/mmacande/srlite/chm_model/20231014_chm/train_merged_nodtm_npy'
 
 # directory that stores test data

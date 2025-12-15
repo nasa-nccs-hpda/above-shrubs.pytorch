@@ -102,10 +102,10 @@ def sliding_window_tiler_multiclass(
     return prediction
 
 
-# Convert tif to decameters and make 0 min
-def convert_predictions_to_decameters_int16(predictions):
+# Convert tif to decimeters and make 0 min
+def convert_predictions_to_decimeters_int16(predictions):
     """
-    Convert predictions from meters to decameters,
+    Convert predictions from meters to decimeters,
     round to nearest integer,
     and convert to int16 data type.
     Preserves -9999 NoData values.
@@ -116,7 +116,7 @@ def convert_predictions_to_decameters_int16(predictions):
 
     Returns:
     converted_predictions: numpy array of
-    int16 type with values in decameters
+    int16 type with values in decimeters
     """
     # Create NoData mask
     nodata_mask = predictions == -9999
@@ -126,24 +126,24 @@ def convert_predictions_to_decameters_int16(predictions):
     # Temporarily set to 0 for processing
     valid_predictions[nodata_mask] = 0
 
-    # Multiply by 10 to convert meters to decameters
-    decameters = valid_predictions * 10
+    # Multiply by 10 to convert meters to decimeters
+    decimeters = valid_predictions * 10
 
     # Round to nearest integer
-    rounded = np.round(decameters)
+    rounded = np.round(decimeters)
 
     # Convert to int16
     converted_predictions = rounded.astype(np.int16)
 
     # Make all negative vlaues = 0
     converted_predictions[
-        converted_predictions < 0] = 0 
+        converted_predictions < 0] = 0
 
     # Restore NoData values
     converted_predictions[nodata_mask] = -9999
 
     logging.info(
-        "Converted to decameters. NoData "
+        "Converted to decimeters. NoData "
         f"pixels preserved: {np.sum(nodata_mask):,}"
     )
 
@@ -151,7 +151,7 @@ def convert_predictions_to_decameters_int16(predictions):
 
 
 def save_predictions_as_geotiff(
-            predictions_decameters,
+            predictions_decimeters,
             reference_tif_path,
             output_path
         ):
@@ -162,8 +162,8 @@ def save_predictions_as_geotiff(
     and metadata about units.
 
     Parameters:
-    predictions_decameters: numpy array of int16
-    predictions in decameters
+    predictions_decimeters: numpy array of int16
+    predictions in decimeters
     reference_tif_path: path to the original .tif
     file for geospatial reference
     output_path: path where to save the output GeoTIFF
@@ -179,14 +179,14 @@ def save_predictions_as_geotiff(
     projection = ref_ds.GetProjection()
 
     # Get dimensions
-    height, width = predictions_decameters.shape
+    height, width = predictions_decimeters.shape
 
     # Replace NaN values with -9999 (NoData value)
-    output_array = predictions_decameters.copy()
-    if np.issubdtype(predictions_decameters.dtype, np.floating):
+    output_array = predictions_decimeters.copy()
+    if np.issubdtype(predictions_decimeters.dtype, np.floating):
         output_array = np.where(
-            np.isnan(predictions_decameters),
-            -9999, predictions_decameters)
+            np.isnan(predictions_decimeters),
+            -9999, predictions_decimeters)
     output_array = output_array.astype(np.int16)
 
     # Create the output dataset
@@ -219,18 +219,17 @@ def save_predictions_as_geotiff(
     band.SetNoDataValue(-9999)
 
     # Add metadata about units
-    band.SetDescription("Canopy Height Model - Values in decameters")
-    band.SetMetadataItem("UNITS", "decameters")
+    band.SetDescription("Predicted canopy height (decimeters)")
+    band.SetMetadataItem("UNITS", "decimeters")
     band.SetMetadataItem(
         "DESCRIPTION",
-        "Predicted canopy heights in "
-        "decameters (1 meter = 10 decameters)"
+        "Predicted canopy height (decimeters)"
     )
 
     # Add dataset-level metadata
     out_ds.SetMetadataItem("PROCESSING", "DINOv3 model prediction")
     out_ds.SetMetadataItem("NODATA_VALUE", "-9999")
-    out_ds.SetMetadataItem("UNITS", "decameters")
+    out_ds.SetMetadataItem("UNITS", "decimeters")
 
     # Flush and close
     band.FlushCache()
@@ -241,8 +240,8 @@ def save_predictions_as_geotiff(
 
     print(f"Successfully saved predictions to: {output_path}")
     print("- Compression: LZW")
-    print("- NoData value: -9999") 
-    print("- Units: decameters")
+    print("- NoData value: -9999")
+    print("- Units: decimeters")
     print("- Data type: int16")
     print("- Dimensions: {height} x {width}")
 
@@ -409,7 +408,9 @@ def complete_dinov3_inference_pipeline_batch(
 
                 tile_count = 0
                 for batch_id, batch_i in tiler_image(
-                        xraster, batch_size=batch_size):
+                            xraster, batch_size=batch_size,
+                            progress_bar=True
+                        ):
                     actual_batch_size = len(batch_i)
 
                     # Prepare input batch
@@ -454,17 +455,17 @@ def complete_dinov3_inference_pipeline_batch(
                 original_nodata = np.isnan(nrg_array[0])
                 predictions_meters[original_nodata] = -9999
 
-                # Convert to decameters (int16 for storage efficiency)
-                predictions_decameters = \
-                    convert_predictions_to_decameters_int16(
+                # Convert to decimeters (int16 for storage efficiency)
+                predictions_decimeters = \
+                    convert_predictions_to_decimeters_int16(
                         predictions_meters)
-                print("   ✓ Converted to decameters (int16)")
+                print("   ✓ Converted to decimeters (int16)")
 
                 # Step 4: Save as GeoTIFF
                 print("💾 Step 4: Saving GeoTIFF...")
 
                 save_predictions_as_geotiff(
-                    predictions_decameters, tif_path, output_tif)
+                    predictions_decimeters, tif_path, output_tif)
 
                 # Add to results
                 results.append(predictions_meters)

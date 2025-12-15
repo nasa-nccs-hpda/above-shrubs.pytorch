@@ -36,7 +36,16 @@ singularity build --sandbox /lscratch/$USER/container/above-shrubs.pytorch docke
 An already downloaded version of the container is location in the Explore HPC cluster under:
 
 ```bash
-/explore/nobackup/projects/ilab/containers/above-shrubs-pytorch.2025.01
+/explore/nobackup/projects/ilab/containers/above-shrubs-pytorch.2025.12
+```
+
+## DinoV3 Operational Inference
+
+Within the Explore filesystem, the following command will run inference of the
+DinoV3 CHM model.
+
+```bash
+for i in {1..200}; do sbatch /explore/nobackup/projects/ilab/software/above-shrubs.pytorch/scripts/dinov3_inference.sh; done
 ```
 
 ## Step 1: Setup
@@ -111,7 +120,7 @@ singularity exec --env PYTHONPATH="/explore/nobackup/people/jacaraba/development
 To train a model:
 
 ```bash
-singularity exec --env PYTHONPATH="/explore/nobackup/people/jacaraba/development/above-shrubs.pytorch" --nv -B $NOBACKUP,/explore/nobackup/people,/explore/nobackup/projects /lscratch/jacaraba/container/above-shrubs.pytorch python /explore/nobackup/people/jacaraba/development/above-shrubs.pytorch/above_shrubs/view/landcover_pipeline_cli.py -c /explore/nobackup/people/jacaraba/development/above-shrubs.pytorch/projects/landcover/configs/landcover_v2.0.yaml
+singularity exec --env PYTHONPATH="/explore/nobackup/people/jacaraba/development/above-shrubs.pytorch" --nv -B $NOBACKUP,/explore/nobackup/people,/explore/nobackup/projects /lscratch/jacaraba/container/above-shrubs.pytorch python /explore/nobackup/people/jacaraba/development/above-shrubs.pytorch/above_shrubs/view/landcover_pipeline_cli.py -c /explore/nobackup/people/jacaraba/development/above-shrubs.pytorch/projects/landcover/configs/landcover_v2.0.4.yaml -s predict
 ```
 
 ## Debugging

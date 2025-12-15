@@ -389,7 +389,7 @@ class CHMPipeline(BasePipeline):
                 'green_max': DATA_CONFIG['green_max'],
                 'img_size': 64,
                 'overlap': 0.50,
-                'batch_size': 512,
+                'batch_size': 3072,
                 'visualize_first': True
             }
 
